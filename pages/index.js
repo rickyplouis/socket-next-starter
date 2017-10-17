@@ -17,9 +17,14 @@ class HomePage extends Component {
     rooms: []
   }
 
-  // init state with the prefetched messages
-  state = {
-    rooms: this.props.rooms
+  constructor(props){
+    super(props);
+    this.state = {
+      rooms: this.props.rooms,
+      inputName: '',
+    }
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   // connect to WS server and listen event
@@ -40,7 +45,7 @@ class HomePage extends Component {
   }
 
   handleChange = event => {
-    this.setState({ name: event.target.value })
+    this.setState({ inputName: event.target.value })
   }
 
   // send messages to server and add them to the state
@@ -56,10 +61,12 @@ class HomePage extends Component {
         startTime: ''
       }
     }
+
+    console.log('this.state.inputName', this.state.inputName);
     // create message object
     const room = {
       id: (new Date()).getTime(),
-      value: this.state.name,
+      value: this.state.inputName,
       admin: '',
       agenda: [] //array of agendaItems
     }
@@ -71,6 +78,10 @@ class HomePage extends Component {
     this.setState(state => ({
       rooms: state.rooms.concat(room)
     }))
+  }
+
+  disableSubmit(){
+    return this.state.inputName.length == 0;
   }
 
   render () {
@@ -87,8 +98,9 @@ class HomePage extends Component {
               onChange={this.handleChange}
               type='text'
               placeholder='Enter Your Name'
+              value={this.state.inputName}
             />
-            <button>Send</button>
+          <button disabled={this.disableSubmit()}>Send</button>
           </form>
         </div>
       </main>
