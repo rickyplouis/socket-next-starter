@@ -24,8 +24,10 @@ class HomePage extends Component {
     this.state = {
       rooms: this.props.rooms,
       inputName: '',
+      inputPassword: '',
+
     }
-    this.handleChange = this.handleChange.bind(this);
+    this.handleAdmin = this.handleAdmin.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
@@ -46,7 +48,7 @@ class HomePage extends Component {
     this.setState(state => ({ rooms: state.rooms.concat(room) }))
   }
 
-  handleChange = event => {
+  handleAdmin = event => {
     this.setState({ inputName: event.target.value })
   }
 
@@ -69,8 +71,8 @@ class HomePage extends Component {
     const room = {
       id: uuidv1(),
       createdAt: new Date(),
-      value: this.state.inputName,
-      admin: '',
+      admin: this.state.inputName,
+      password: this.state.inputPassword,
       agenda: [] //array of agendaItems
     }
 
@@ -93,12 +95,16 @@ class HomePage extends Component {
         <div>
           <ul>
             {this.state.rooms.map(room =>
-              <li key={room.id}>{room.value}</li>
+              <div key={room.id}>
+                <strong>id:</strong> {room.id}<br/>
+                <strong>admin:</strong> {room.admin}<br/>
+                <strong>password:</strong> {room.password}<br/>
+              </div>
             )}
           </ul>
           <form onSubmit={this.handleSubmit}>
             <input
-              onChange={this.handleChange}
+              onChange={this.handleAdmin}
               type='text'
               placeholder='Enter Your Name'
               value={this.state.inputName}
