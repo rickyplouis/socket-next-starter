@@ -4,6 +4,8 @@ import fetch from 'isomorphic-fetch'
 
 import Link from 'next/link';
 
+const uuidv1 = require('uuid/v1');
+
 class HomePage extends Component {
   // fetch old messages data from the server
   static async getInitialProps ({ req }) {
@@ -65,7 +67,8 @@ class HomePage extends Component {
     console.log('this.state.inputName', this.state.inputName);
     // create message object
     const room = {
-      id: (new Date()).getTime(),
+      id: uuidv1(),
+      createdAt: new Date(),
       value: this.state.inputName,
       admin: '',
       agenda: [] //array of agendaItems

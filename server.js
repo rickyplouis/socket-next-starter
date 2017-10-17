@@ -27,7 +27,7 @@ nextApp.prepare().then(() => {
   app.get('/messages/:id', (req, res) => {
     for (let message of messages) {
       if (message.id == req.params.id){
-        res.json(message);
+        res.json([message]);
         return;
       }
     }
