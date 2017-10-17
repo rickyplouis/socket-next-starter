@@ -24,6 +24,16 @@ nextApp.prepare().then(() => {
     res.json(messages)
   })
 
+  app.get('/messages/:id', (req, res) => {
+    for (let message of messages) {
+      if (message.id == req.params.id){
+        res.json(message);
+        return;
+      }
+    }
+    res.json({'Error': 'No room at this id'})
+  })
+
   app.get('*', (req, res) => {
     return nextHandler(req, res)
   })
