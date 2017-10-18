@@ -22,17 +22,6 @@ export default class MakeRoom extends Component {
       inputName: '',
       inputPassword: '',
       inputMinutes: 0,
-      inputAgenda: [
-        { index: 0,
-          title: "",
-          message: {
-            speaker: '',
-            description: '',
-            duration: '',
-            startTime: ''
-          }
-        }
-      ]
     }
     this.handleAdmin = this.handleAdmin.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -68,56 +57,22 @@ export default class MakeRoom extends Component {
     this.setState({ inputMinutes: event.target.value })
   }
 
-  addAgendaItem = event => {
-    this.setState( state => ({
-      rooms: state.rooms,
-      inputName: state.inputName,
-      inputPassword: state.inputPassword,
-      inputMinutes: state.inputMinutes,
-      inputAgenda: state.inputAgenda.concat({
-        title: "",
-          message: {
-            speaker: '',
-            description: '',
-            duration: '',
-            startTime: ''
-          }
-        })
-    }))
-  }
-
-
   // send messages to server and add them to the state
   handleSubmit = event => {
     event.preventDefault()
-
-    const agendaItems = {
-      title: "",
-      message: {
-        speaker: '',
-        description: '',
-        duration: '',
-        startTime: ''
-      }
-    }
-
     let roomID = uuidv1();
-    // create message object
+
     const room = {
       id: roomID,
       createdAt: new Date(),
       admin: this.state.inputName,
       password: this.state.inputPassword,
       duration: this.state.inputMinutes,
-      agenda: this.state.agenda
+      agenda: []
     }
 
     this.setState(state => ({
-      rooms: state.rooms.concat(room),
-      inputName: '',
-      inputPassword: '',
-      inputMinutes: 0,
-      inputAgenda: []
+      rooms: state.rooms.concat(room)
     }))
 
     Router.push({
@@ -129,18 +84,6 @@ export default class MakeRoom extends Component {
     this.socket.emit('makeRoom', room)
   }
 
-  renderAgenda(){
-    let index = 0;
-    let agenda = this.state.inputAgenda;
-    let agendaItems = agenda.map( (item) =>
-      <form key={index+= 1}>
-        Some item
-        <input placeholder="Some item" type="text" />
-      </form>
-    )
-    return agendaItems
-  }
-
   disableSubmit(){
     return this.state.inputName.length == 0 || this.state.inputPassword.length == 0 || this.state.inputMinutes == 0;
   }
@@ -149,19 +92,6 @@ export default class MakeRoom extends Component {
     return (
       <main>
         <div>
-          <ul>
-            {this.state.rooms.map(room =>
-              <div key={room.id}>
-                <strong>id:</strong> {room.id}<br/>
-                <strong>admin:</strong> {room.admin}<br/>
-                <strong>password:</strong> {room.password}<br/>
-                <strong>duration:</strong> {room.duration}<br/>
-                <strong>agenda:</strong> {room.agenda}
-              </div>
-            )}
-          </ul>
-          {this.renderAgenda()}
-          <button onClick={(e) => this.addAgendaItem()}>Add Agenda Item</button>
           <form onSubmit={this.handleSubmit}>
             <input
               onChange={this.handleAdmin}

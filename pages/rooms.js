@@ -37,9 +37,13 @@ export default class RoomPage extends React.Component {
     this.socket.close()
   }
 
-  // add messages from server to the state
+  // only update room if id matches
+  // prevents cross room updates
   loadRooms = (room) => {
-    this.setState(state => ({ room }))
+    if (room.id == this.state.id){
+      this.setState(state => ({ room }))
+    }
+    return;
   }
 
 
@@ -72,7 +76,6 @@ export default class RoomPage extends React.Component {
 
   handleSubmit = event => {
     event.preventDefault()
-    console.log('handleSubmit fired');
     this.socket.emit('updateRoom', this.state.room)
   }
 
