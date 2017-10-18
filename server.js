@@ -11,6 +11,7 @@ const nextHandler = nextApp.getRequestHandler()
 // fake DB
 const messages = []
 
+
 // socket.io server
 io.on('connection', socket => {
   socket.on('message', (data) => {
@@ -23,7 +24,7 @@ nextApp.prepare().then(() => {
   app.get('/rooms', (req, res) => {
     const queryParams = { id: req.query.id}
     if (req.query.id){
-      nextApp.render(req, res, '/rooms' , queryParams)      
+      nextApp.render(req, res, '/rooms' , queryParams)
     } else {
       res.json(messages)
     }

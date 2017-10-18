@@ -1,5 +1,7 @@
 import React from 'react'
 
+import fetch from 'isomorphic-fetch'
+
 export default class RoomPage extends React.Component {
 
   componentWillReceiveProps(nextProps) {
@@ -8,30 +10,36 @@ export default class RoomPage extends React.Component {
     // fetch data based on the new query
   }
 
-  // fetch old messages data from the server
-  /**
-  static async getInitialProps ({ req }) {
-    console.log('state here is', this.state);
-    const appUrl = process.env.NODE_ENV !== 'production' ? 'http://localhost:3000/rooms/' : 'https://robertrules.io/rooms';
+  static async getInitialProps ({ query: { id } }) {
+    console.log('id is', id);
+    const appUrl = process.env.NODE_ENV !== 'production' ? 'http://localhost:3000/rooms' : 'https://robertrules.io/rooms';
     const response = await fetch(appUrl)
     const rooms = await response.json()
     return { rooms }
   }
 
-  **/
+
   static defaultProps = {
     rooms: []
   }
 
   constructor(props){
     super(props);
+    let targetRoom = {}
+    for (let room of this.props.rooms){
+      if (room.id == this.props.url.query.id){
+        targetRoom = room
+      }
+    }
     console.log('props at constructor', this.props);
     this.state = {
-      room: {},
+      room: targetRoom,
       id: this.props.url.query.id,
       text: 'Hello world'
     }
+    console.log('state is', this.state);
   }
+
 
   render(){
     return (
