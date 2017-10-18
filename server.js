@@ -9,14 +9,22 @@ const nextApp = next({ dev })
 const nextHandler = nextApp.getRequestHandler()
 
 // fake DB
-const rooms = []
-
+var rooms = []
 
 // socket.io server
 io.on('connection', socket => {
   socket.on('makeRoom', (data) => {
     rooms.push(data)
     socket.broadcast.emit('makeRoom', data)
+  })
+
+  socket.on('updateRoom', (data) => {
+    for (let x = rooms.length -1; x >-1 ; x-- ){
+      if (rooms[x].id == data.id){
+        rooms[x] = data;
+      }
+    }
+    socket.broadcast.emit('updateRoom', data);
   })
 })
 

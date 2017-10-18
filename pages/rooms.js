@@ -1,6 +1,7 @@
 import React from 'react'
 
 import fetch from 'isomorphic-fetch'
+import io from 'socket.io-client'
 
 export default class RoomPage extends React.Component {
 
@@ -23,6 +24,25 @@ export default class RoomPage extends React.Component {
     rooms: []
   }
 
+
+  // connect to WS server and listen event
+  componentDidMount () {
+    this.socket = io()
+    this.socket.on('updateRoom', this.loadRooms)
+  }
+
+  // close socket connection
+  componentWillUnmount () {
+    this.socket.off('updateRoom', this.loadRooms)
+    this.socket.close()
+  }
+
+  // add messages from server to the state
+  loadRooms = (room) => {
+    this.setState(state => ({ room }))
+  }
+
+
   constructor(props){
     super(props);
     let targetRoom = {}
@@ -40,6 +60,26 @@ export default class RoomPage extends React.Component {
     console.log('state is', this.state);
   }
 
+  handleAdmin = event => {
+    this.setState({
+      room: {
+        id: this.state.id,
+        admin: event.target.value,
+        password: this.state.room.password
+      }
+    })
+  }
+
+  handleSubmit = event => {
+    event.preventDefault()
+    console.log('handleSubmit fired');
+    this.socket.emit('updateRoom', this.state.room)
+  }
+
+  disableSubmit(){
+    return this.state.room.admin.length == 0;
+  }
+
   renderRoom = () => {
     let objectIsEmpty = Object.keys(this.state.room).length === 0 && this.state.room.constructor === Object
     if (objectIsEmpty){
@@ -49,7 +89,11 @@ export default class RoomPage extends React.Component {
         <div>
           <div>On rooms.js {this.state.text}</div>
           <div>Room id is {this.state.id}</div>
-          <div> Current Room Info: Admin: {this.state.room.admin} </div>
+          <div> Current Room Admin: </div>
+          <form onSubmit={this.handleSubmit}>
+            <input type="text" value={this.state.room.admin} onChange={this.handleAdmin} />
+            <button disabled={this.disableSubmit()}>Send</button>
+          </form>
         </div>
       )}
   }
