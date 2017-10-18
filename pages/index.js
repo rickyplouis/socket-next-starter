@@ -6,12 +6,6 @@ import Link from 'next/link';
 
 import Router from 'next/router'
 
-const handler = () =>
-  Router.push({
-    pathname: '/rooms',
-  })
-
-
 const uuidv1 = require('uuid/v1');
 
 class HomePage extends Component {
@@ -131,6 +125,11 @@ class HomePage extends Component {
       inputAgenda: []
     }))
 
+    Router.push({
+      pathname: '/rooms',
+      query: {name: this.state.inputName}
+    })
+
     // send object to WS server
     this.socket.emit('message', room)
   }
@@ -187,7 +186,6 @@ class HomePage extends Component {
               placeholder='Enter Duration'
               value={this.state.inputMinutes}
             />
-          <button onClick={handler}>Navigate</button>
           <button disabled={this.disableSubmit()}>Send</button>
           </form>
         </div>
