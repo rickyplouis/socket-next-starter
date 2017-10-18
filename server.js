@@ -20,15 +20,15 @@ io.on('connection', socket => {
 })
 
 nextApp.prepare().then(() => {
-  app.get('/messages', (req, res) => {
+  app.get('/rooms', (req, res) => {
     res.json(messages)
   })
 
-  app.get('/messages/:id', (req, res) => {
+  app.get('/rooms/:id', (req, res) => {
+
     for (let message of messages) {
       if (message.id == req.params.id){
-        res.json([message]);
-        return;
+        res.json(message)
       }
     }
     res.json({'Error': 'No room at this id'})

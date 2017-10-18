@@ -4,12 +4,20 @@ import fetch from 'isomorphic-fetch'
 
 import Link from 'next/link';
 
+import Router from 'next/router'
+
+const handler = () =>
+  Router.push({
+    pathname: '/rooms',
+  })
+
+
 const uuidv1 = require('uuid/v1');
 
 class HomePage extends Component {
   // fetch old messages data from the server
   static async getInitialProps ({ req }) {
-    const appUrl = process.env.NODE_ENV !== 'production' ? 'http://localhost:3000/messages' : 'https://robertrules.io/messages';
+    const appUrl = process.env.NODE_ENV !== 'production' ? 'http://localhost:3000/rooms' : 'https://robertrules.io/rooms';
     const response = await fetch(appUrl)
     const rooms = await response.json()
     return { rooms }
@@ -179,7 +187,7 @@ class HomePage extends Component {
               placeholder='Enter Duration'
               value={this.state.inputMinutes}
             />
-
+          <button onClick={handler}>Navigate</button>
           <button disabled={this.disableSubmit()}>Send</button>
           </form>
         </div>
