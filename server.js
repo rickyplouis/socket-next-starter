@@ -23,10 +23,15 @@ nextApp.prepare().then(() => {
   app.get('/rooms', (req, res) => {
     const queryParams = { id: req.query.id}
     if (req.query.id){
-      nextApp.render(req, res, '/rooms',  queryParams)
+      nextApp.render(req, res, '/rooms' , queryParams)      
     } else {
       res.json(messages)
     }
+  })
+
+  app.get('/rooms:id', (req, res) => {
+    const queryParams = { id: req.query.id}
+    nextApp.render(req, res, '/rooms' ,  queryParams)
   })
 
   app.get('*', (req, res) => {
