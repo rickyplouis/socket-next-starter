@@ -27,7 +27,8 @@ class HomePage extends Component {
       inputPassword: '',
       inputMinutes: 0,
       inputAgenda: [
-        { title: "",
+        { index: 0,
+          title: "",
           message: {
             speaker: '',
             description: '',
@@ -39,7 +40,6 @@ class HomePage extends Component {
     }
     this.handleAdmin = this.handleAdmin.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleAgenda = this.handleAgenda.bind(this);
     this.handlePassword = this.handlePassword.bind(this);
   }
 
@@ -62,10 +62,6 @@ class HomePage extends Component {
 
   handleAdmin = event => {
     this.setState({ inputName: event.target.value })
-  }
-
-  handleAgenda = event => {
-    this.setState({ inputAgenda: event.target.value})
   }
 
   handlePassword = event => {
@@ -133,10 +129,9 @@ class HomePage extends Component {
 
   renderAgenda(){
     let index = 0;
-    console.log('inputAgenda', this.state.inputAgenda);
     let agenda = this.state.inputAgenda;
     let agendaItems = agenda.map( (item) =>
-      <form key={index++} onChange={this.handleAgenda}>
+      <form key={index+= 1}>
         Some item
         <input placeholder="Some item" type="text" />
       </form>
@@ -159,6 +154,7 @@ class HomePage extends Component {
                 <strong>admin:</strong> {room.admin}<br/>
                 <strong>password:</strong> {room.password}<br/>
                 <strong>duration:</strong> {room.duration}<br/>
+                <strong>agenda:</strong> {room.agenda}
               </div>
             )}
           </ul>
