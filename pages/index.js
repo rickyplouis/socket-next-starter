@@ -107,9 +107,10 @@ class HomePage extends Component {
       }
     }
 
+    let roomID = uuidv1();
     // create message object
     const room = {
-      id: uuidv1(),
+      id: roomID,
       createdAt: new Date(),
       admin: this.state.inputName,
       password: this.state.inputPassword,
@@ -127,7 +128,7 @@ class HomePage extends Component {
 
     Router.push({
       pathname: '/rooms',
-      query: {name: this.state.inputName}
+      query: { id: roomID }
     })
 
     // send object to WS server

@@ -21,17 +21,12 @@ io.on('connection', socket => {
 
 nextApp.prepare().then(() => {
   app.get('/rooms', (req, res) => {
-    res.json(messages)
-  })
-
-  app.get('/rooms/:id', (req, res) => {
-
-    for (let message of messages) {
-      if (message.id == req.params.id){
-        res.json(message)
-      }
+    const queryParams = { id: req.query.id}
+    if (req.query.id){
+      nextApp.render(req, res, '/rooms',  queryParams)
+    } else {
+      res.json(messages)
     }
-    res.json({'Error': 'No room at this id'})
   })
 
   app.get('*', (req, res) => {
