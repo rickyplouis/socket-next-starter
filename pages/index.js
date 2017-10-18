@@ -39,28 +39,33 @@ class HomePage extends Component {
     }
     this.handleAdmin = this.handleAdmin.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleAgenda = this.handleAgenda.bind(this);
     this.handlePassword = this.handlePassword.bind(this);
   }
 
   // connect to WS server and listen event
   componentDidMount () {
     this.socket = io()
-    this.socket.on('message', this.handleMessage)
+    this.socket.on('message', this.loadRooms)
   }
 
   // close socket connection
   componentWillUnmount () {
-    this.socket.off('message', this.handleMessage)
+    this.socket.off('message', this.loadRooms)
     this.socket.close()
   }
 
   // add messages from server to the state
-  handleMessage = (room) => {
+  loadRooms = (room) => {
     this.setState(state => ({ rooms: state.rooms.concat(room) }))
   }
 
   handleAdmin = event => {
     this.setState({ inputName: event.target.value })
+  }
+
+  handleAgenda = event => {
+    this.setState({ inputAgenda: event.target.value})
   }
 
   handlePassword = event => {
@@ -89,15 +94,6 @@ class HomePage extends Component {
     }))
   }
 
-  clearForm(){
-    this.setState(state => ({
-      rooms: state.rooms.concat(room),
-      inputName: '',
-      inputPassword: '',
-      inputMinutes: 0,
-      inputAgenda: []
-    }))
-  }
 
   // send messages to server and add them to the state
   handleSubmit = event => {
@@ -120,12 +116,19 @@ class HomePage extends Component {
       admin: this.state.inputName,
       password: this.state.inputPassword,
       duration: this.state.inputMinutes,
-      agenda: [] //array of agendaItems
+      agenda: this.state.agenda
     }
+
+    this.setState(state => ({
+      rooms: state.rooms.concat(room),
+      inputName: '',
+      inputPassword: '',
+      inputMinutes: 0,
+      inputAgenda: []
+    }))
 
     // send object to WS server
     this.socket.emit('message', room)
-    this.clearForm();
   }
 
   renderAgenda(){
@@ -133,9 +136,9 @@ class HomePage extends Component {
     console.log('inputAgenda', this.state.inputAgenda);
     let agenda = this.state.inputAgenda;
     let agendaItems = agenda.map( (item) =>
-      <form key={index++}>
+      <form key={index++} onChange={this.handleAgenda}>
         Some item
-        <input placeholder="Some item" type="text"/>{item.title}
+        <input placeholder="Some item" type="text" />
       </form>
     )
     return agendaItems
