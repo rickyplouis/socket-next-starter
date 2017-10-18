@@ -40,16 +40,24 @@ export default class RoomPage extends React.Component {
     console.log('state is', this.state);
   }
 
+  renderRoom = () => {
+    let objectIsEmpty = Object.keys(this.state.room).length === 0 && this.state.room.constructor === Object
+    if (objectIsEmpty){
+      return <div>No room available at this id</div>
+    } else {
+      return (
+        <div>
+          <div>On rooms.js {this.state.text}</div>
+          <div>Room id is {this.state.id}</div>
+          <div> Current Room Info: Admin: {this.state.room.admin} </div>
+        </div>
+      )}
+  }
 
   render(){
-    return (
+    return(
       <div>
-        <div>On rooms.js {this.state.text}</div>
-        <div>Room id is {this.state.id}</div>
-        <div>
-          Current Room Info:
-            Admin: {this.state.room.admin}
-        </div>
+        {this.renderRoom()}
       </div>
     )
   }
