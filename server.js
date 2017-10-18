@@ -9,14 +9,14 @@ const nextApp = next({ dev })
 const nextHandler = nextApp.getRequestHandler()
 
 // fake DB
-const messages = []
+const rooms = []
 
 
 // socket.io server
 io.on('connection', socket => {
-  socket.on('message', (data) => {
-    messages.push(data)
-    socket.broadcast.emit('message', data)
+  socket.on('makeRoom', (data) => {
+    rooms.push(data)
+    socket.broadcast.emit('makeRoom', data)
   })
 })
 
@@ -26,7 +26,7 @@ nextApp.prepare().then(() => {
     if (req.query.id){
       nextApp.render(req, res, '/rooms' , queryParams)
     } else {
-      res.json(messages)
+      res.json(rooms)
     }
   })
 

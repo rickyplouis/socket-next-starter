@@ -48,12 +48,12 @@ export default class TestPage extends Component {
   // connect to WS server and listen event
   componentDidMount () {
     this.socket = io()
-    this.socket.on('message', this.loadRooms)
+    this.socket.on('makeRoom', this.loadRooms)
   }
 
   // close socket connection
   componentWillUnmount () {
-    this.socket.off('message', this.loadRooms)
+    this.socket.off('makeRoom', this.loadRooms)
     this.socket.close()
   }
 
@@ -126,7 +126,7 @@ export default class TestPage extends Component {
       inputAgenda: []
     }))
     // send object to WS server
-    this.socket.emit('message', room)
+    this.socket.emit('makeRoom', room)
   }
 
   renderAgenda(){
