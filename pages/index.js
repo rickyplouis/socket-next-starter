@@ -1,5 +1,8 @@
 import React from 'react'
 import Router from 'next/router'
+import { Button, Header } from 'semantic-ui-react'
+
+import PageContainer from '../components/pageContainer'
 
 const handler = (path) => {
   Router.push({
@@ -18,11 +21,16 @@ export default class HomePage extends React.Component {
 
   render(){
     return (
-      <div>
-        <button onClick={() => handler('/makeRoom')}>Make A Room</button>
-        <button onClick={() => handler('/joinRoom')}>Join A Room</button>
-        <button onClick={() => handler('/test')}>Test Page</button>
-      </div>
+      <PageContainer>
+        <div style={{marginTop: '10vh'}}>
+          <Header as="h2">Welcome to Robert Rules</Header>
+          <Header as="h3">We make meetings less painful</Header>
+          <br/>
+          <Button onClick={() => handler('/makeRoom')}>Make A Room</Button>
+          <Button onClick={() => handler('/joinRoom')}>Join A Room</Button>
+          <Button onClick={() => handler('/test')}>Test Page</Button>
+        </div>
+      </PageContainer>
     )
   }
 }
