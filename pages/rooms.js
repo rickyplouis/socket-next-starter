@@ -4,9 +4,8 @@ import fetch from 'isomorphic-fetch'
 import io from 'socket.io-client'
 
 import PageContainer from '../components/pageContainer'
-import UserList from '../components/userList'
-import CurrentUser from '../components/currentUser'
 import Timer from '../components/timer'
+import CardComponent from '../components/card'
 
 import { Header, Form, Button } from 'semantic-ui-react'
 
@@ -99,10 +98,9 @@ export default class RoomPage extends React.Component {
         <div style={{margin: '0 auto', display: 'table'}}>
           <Header as="h2">On room.js</Header>
           <Header as="h3"> Room id is {this.state.id}</Header>
-          <CurrentUser>
+          <CardComponent>
             <Timer/>
-          </CurrentUser>
-          <UserList/>
+          </CardComponent>
           <Form onSubmit={this.handleSubmit}>
             <label>Current admin:</label>
             <Form.Input type="text" value={this.state.room.admin} onChange={this.handleAdmin} />
