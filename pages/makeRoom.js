@@ -19,11 +19,13 @@ export default class MakeRoom extends Component {
       rooms: this.props.rooms,
       admin: '',
       password: '',
+      confirmPassword: '',
       duration: 0,
     }
     this.handleAdmin = this.handleAdmin.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handlePassword = this.handlePassword.bind(this);
+    this.handleConfirmPassword = this.handleConfirmPassword.bind(this);
   }
 
   // connect to WS server and listen event
@@ -54,6 +56,10 @@ export default class MakeRoom extends Component {
     this.setState({ password: event.target.value })
   }
 
+  handleConfirmPassword = event => {
+    this.setState({ confirmPassword: event.target.value })
+  }
+
   handleDuration = event => {
     this.setState({ duration: event.target.value })
   }
@@ -65,7 +71,14 @@ export default class MakeRoom extends Component {
       admin: this.state.admin,
       password: this.state.password,
       duration: this.state.duration,
-      agenda: []
+      agenda: [],
+      users: [
+        {
+          name: this.state.admin,
+          isAdmin: true,
+          isConnected: true
+        }
+      ]
     }
   }
 
@@ -86,6 +99,10 @@ export default class MakeRoom extends Component {
 
     // send object to WS server
     this.socket.emit('makeRoom', room)
+  }
+
+  passwordMismatch(){
+    return this.state.confirmPassword !== this.state.password;
   }
 
   disableSubmit(){
@@ -116,6 +133,16 @@ export default class MakeRoom extends Component {
                 />
             </Form.Field>
             <Form.Field style={{textAlign: 'left'}}>
+              <label>Confirm Password</label>
+              <Form.Input
+                error={this.passwordMismatch() && this.state.confirmPassword.length > 0}
+                onChange={this.handleConfirmPassword}
+                type='password'
+                placeholder='Enter Your Room Password'
+                value={this.state.confirmPassword}
+                />
+            </Form.Field>
+            <Form.Field style={{textAlign: 'left'}}>
               <label>Enter Meeting Duration (Mins)</label>
               <Form.Input
                 onChange={this.handleDuration}
@@ -123,7 +150,7 @@ export default class MakeRoom extends Component {
                 placeholder='Enter Duration'
                 value={this.state.duration}
                 />
-              <Button disabled={this.disableSubmit()} style={{width: '20vw'}}>Create Room</Button>
+              <Button disabled={this.disableSubmit() || this.passwordMismatch()} style={{width: '20vw'}}>Create Room</Button>
             </Form.Field>
         </Form>
       </PageContainer>
