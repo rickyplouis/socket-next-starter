@@ -71,7 +71,7 @@ export default class MakeRoom extends Component {
       admin: this.state.admin,
       password: this.state.password,
       duration: this.state.duration,
-      agenda: [],
+      agenda: this.state.agenda,
       users: [
         {
           name: this.state.admin,

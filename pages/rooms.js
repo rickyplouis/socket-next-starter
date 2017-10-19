@@ -85,7 +85,6 @@ export default class RoomPage extends React.Component {
     return;
   }
 
-
   constructor(props){
     super(props);
     let targetRoom = {}
@@ -99,7 +98,7 @@ export default class RoomPage extends React.Component {
       room: targetRoom,
       id: this.props.url.query.id,
       text: 'Hello world',
-      topics: [],
+      inputTopic: '',
       items: [
               {
                 _id: 'p1',
@@ -129,12 +128,44 @@ export default class RoomPage extends React.Component {
 
   handleAdmin = event => {
     this.setState({
+      inputTopic: this.state.inputTopic,
       room: {
         id: this.state.id,
         admin: event.target.value,
-        password: this.state.room.password
+        password: this.state.room.password,
+        agenda: this.state.room.agenda
       }
     })
+  }
+
+  renderTopics(){
+    return this.state.room.agenda.map( (topic) => (<div>{topic.name}</div>) )
+  }
+
+  handleTopic = event => {
+    this.setState({
+      inputTopic: event.target.value,
+      room: this.state.room
+    })
+  }
+
+  makeAgenda(){
+    return this.state.room.agenda.concat({'name': this.state.inputTopic})
+  }
+
+  submitTopic = event => {
+    event.preventDefault();
+
+    this.setState({
+      room: {
+        id: this.state.id,
+        admin: event.target.value,
+        password: this.state.room.password,
+        agenda: this.makeAgenda()
+      }
+    })
+
+    this.socket.emit('updateRoom', this.state.room)
   }
 
   handleSubmit = event => {
@@ -197,6 +228,12 @@ export default class RoomPage extends React.Component {
             <label>Current admin:</label>
             <Form.Input type="text" value={this.state.room.admin} onChange={this.handleAdmin} />
             <Button disabled={this.disableSubmit()}>Send</Button>
+          </Form>
+          {this.renderTopics()}
+          <Form>
+            <label>Add Topic:</label>
+            <Form.Input type="text" value={this.state.inputTopic} onChange={this.handleTopic} />
+            <Button onClick={this.submitTopic}>Send</Button>
           </Form>
         </div>
       )}
