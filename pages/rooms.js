@@ -3,6 +3,13 @@ import React from 'react'
 import fetch from 'isomorphic-fetch'
 import io from 'socket.io-client'
 
+import PageContainer from '../components/pageContainer'
+import UserList from '../components/userList'
+import CurrentUser from '../components/currentUser'
+import Timer from '../components/timer'
+
+import { Header, Form, Button } from 'semantic-ui-react'
+
 export default class RoomPage extends React.Component {
 
   componentWillReceiveProps(nextProps) {
@@ -89,23 +96,27 @@ export default class RoomPage extends React.Component {
       return <div>No room available at this id</div>
     } else {
       return (
-        <div>
-          <div>On rooms.js {this.state.text}</div>
-          <div>Room id is {this.state.id}</div>
-          <div> Current Room Admin: </div>
-          <form onSubmit={this.handleSubmit}>
-            <input type="text" value={this.state.room.admin} onChange={this.handleAdmin} />
-            <button disabled={this.disableSubmit()}>Send</button>
-          </form>
+        <div style={{margin: '0 auto', display: 'table'}}>
+          <Header as="h2">On room.js</Header>
+          <Header as="h3"> Room id is {this.state.id}</Header>
+          <CurrentUser>
+            <Timer/>
+          </CurrentUser>
+          <UserList/>
+          <Form onSubmit={this.handleSubmit}>
+            <label>Current admin:</label>
+            <Form.Input type="text" value={this.state.room.admin} onChange={this.handleAdmin} />
+            <Button disabled={this.disableSubmit()}>Send</Button>
+          </Form>
         </div>
       )}
   }
 
   render(){
     return(
-      <div>
+      <PageContainer>
         {this.renderRoom()}
-      </div>
+      </PageContainer>
     )
   }
 }
