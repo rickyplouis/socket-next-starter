@@ -2,7 +2,7 @@ import { Component } from 'react';
 import io from 'socket.io-client';
 import Router from 'next/router';
 import PageContainer from '../components/pageContainer';
-import { Form, Button } from 'semantic-ui-react';
+import { Form, Button, Header } from 'semantic-ui-react';
 
 const uuidv1 = require('uuid/v1');
 
@@ -95,26 +95,36 @@ export default class MakeRoom extends Component {
   render () {
     return (
       <PageContainer>
-          <Form onSubmit={this.handleSubmit}>
-            <input
-              onChange={this.handleAdmin}
-              type='text'
-              placeholder='Enter Your Name'
-              value={this.state.admin}
-            />
-            <input
-              onChange={this.handlePassword}
-              type='text'
-              placeholder='Enter Your Room Password'
-              value={this.state.password}
-            />
-            <input
-              onChange={this.handleDuration}
-              type='number'
-              placeholder='Enter Duration'
-              value={this.state.duration}
-            />
-          <Button disabled={this.disableSubmit()}>Send</Button>
+          <Form onSubmit={this.handleSubmit} style={{marginTop: '10vh', marginLeft: '30vw', marginRight:'30vw'}}>
+            <Header as="h2">Make A Room</Header>
+            <Form.Field style={{textAlign:'left'}}>
+              <label>Enter Your Name</label>
+              <Form.Input
+                onChange={this.handleAdmin}
+                type='text'
+                placeholder='Robert Ruler'
+                value={this.state.admin}
+                />
+            </Form.Field>
+            <Form.Field style={{textAlign: 'left'}}>
+              <label>Enter Password</label>
+              <Form.Input
+                onChange={this.handlePassword}
+                type='password'
+                placeholder='Enter Your Room Password'
+                value={this.state.password}
+                />
+            </Form.Field>
+            <Form.Field style={{textAlign: 'left'}}>
+              <label>Enter Meeting Duration (Mins)</label>
+              <Form.Input
+                onChange={this.handleDuration}
+                type='number'
+                placeholder='Enter Duration'
+                value={this.state.duration}
+                />
+              <Button disabled={this.disableSubmit()} style={{width: '20vw'}}>Create Room</Button>
+            </Form.Field>
         </Form>
       </PageContainer>
     )

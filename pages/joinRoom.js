@@ -1,5 +1,7 @@
 import React from 'react'
 import Router from 'next/router'
+import PageContainer from '../components/pageContainer'
+import { Form, Button, Header } from 'semantic-ui-react'
 
 export default class JoinRoom extends React.Component {
 
@@ -31,18 +33,21 @@ export default class JoinRoom extends React.Component {
 
   render(){
     return (
-      <div>
-      <form onSubmit={this.handleRouter}>
-        <input
-          onChange={this.handleID}
-          type='text'
-          placeholder='Enter The ID of the room you want to join'
-          value={this.state.inputID}
-        />
-      <button disabled={this.disableSubmit()}>Send</button>
-      </form>
-        {this.state.text}
-      </div>
+      <PageContainer>
+        <Form onSubmit={this.handleRouter}  style={{marginTop: '10vh', marginLeft: '30vw', marginRight:'30vw'}}>
+          <Header as="h2">Join A Room</Header>
+          <Form.Group>
+            <Form.Input
+              onChange={this.handleID}
+              type='text'
+              placeholder='Enter Your Room ID'
+              value={this.state.inputID}
+              width={16}
+              />
+            <Button disabled={this.disableSubmit()}>Send</Button>
+          </Form.Group>
+        </Form>
+      </PageContainer>
     )
   }
 }
