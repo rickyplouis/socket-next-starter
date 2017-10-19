@@ -5,9 +5,37 @@ import io from 'socket.io-client'
 
 import PageContainer from '../components/pageContainer'
 import Timer from '../components/timer'
-import CardComponent from '../components/card'
+import CardComponent from '../components/cardComponent'
 
-import { Header, Form, Button } from 'semantic-ui-react'
+import { Header, Form, Button, Card, Feed, Icon } from 'semantic-ui-react'
+import {SortableContainer, SortableElement, arrayMove} from 'react-sortable-hoc';
+
+
+const SortableItem = SortableElement(({value}) =>
+  <Feed.Event>
+    <Feed.Label>
+      <img src={value.image} />
+    </Feed.Label>
+    <Feed.Content>
+      <Feed.Summary>
+        <Feed.User>{value.name}</Feed.User> will discuss {value.topic}
+        <Feed.Date>{value.time}</Feed.Date>
+      </Feed.Summary>
+    </Feed.Content>
+  </Feed.Event>
+);
+
+const SortableList = SortableContainer(({items}) => {
+  return (
+    <Feed>
+      {items.map((value, index) => (
+        <SortableItem key={`item-${index}`} index={index} value={value} />
+      ))}
+    </Feed>
+  );
+});
+
+
 
 export default class RoomPage extends React.Component {
 
@@ -30,6 +58,11 @@ export default class RoomPage extends React.Component {
     rooms: []
   }
 
+  onSortEnd = ({oldIndex, newIndex}) => {
+    this.setState({
+      items: arrayMove(this.state.items, oldIndex, newIndex),
+    });
+  };
 
   // connect to WS server and listen event
   componentDidMount () {
@@ -65,7 +98,31 @@ export default class RoomPage extends React.Component {
     this.state = {
       room: targetRoom,
       id: this.props.url.query.id,
-      text: 'Hello world'
+      text: 'Hello world',
+      topics: [],
+      items: [
+              {
+                _id: 'p1',
+                name: 'Elliot',
+                image: '/static/images/elliot.jpg',
+                time: '10 Mins',
+                topic: 'Marketing'
+              },
+              {
+                _id: 'p2',
+                name: 'Helen',
+                image: '/static/images/helen.jpg',
+                time: '20 mins',
+                topic: 'Engineering'
+              },
+              {
+                _id: 'p3',
+                name: 'Chris',
+                image: '/static/images/chris.jpg',
+                time: '10 mins',
+                topic: 'Sales'
+              }
+            ]
     }
     console.log('state is', this.state);
   }
@@ -98,9 +155,44 @@ export default class RoomPage extends React.Component {
         <div style={{margin: '0 auto', display: 'table'}}>
           <Header as="h2">On room.js</Header>
           <Header as="h3"> Room id is {this.state.id}</Header>
-          <CardComponent>
-            <Timer/>
-          </CardComponent>
+          <Card style={{margin: '0 auto', display: 'table', width: '50vw'}}>
+            <Card.Content>
+              <Card.Header>
+                <Header as="h1">
+                  Meeting Agenda
+                </Header>
+              </Card.Header>
+            </Card.Content>
+            <Card.Content>
+              <Card.Header>
+                <Header as="h3" floated="left">
+                  Current Speaker: Christian Smith
+                </Header>
+                <Feed>
+                  <Feed.Event>
+                    <Feed.Label image='/static/images/christian.jpg' />
+                    <Feed.Content>
+                      <Feed.Date content='10 minutes totlal' />
+                      <Feed.Summary>
+                        Christian will be speaking about <a>something really really important</a>
+                      </Feed.Summary>
+                      <Timer/>
+                    </Feed.Content>
+                  </Feed.Event>
+                </Feed>
+              </Card.Header>
+            </Card.Content>
+            <Card.Content>
+              <Card.Header>
+                <Header as="h3" floated="left">
+                  Marketing
+                </Header>
+              </Card.Header>
+            </Card.Content>
+            <Card.Content>
+              <SortableList items={this.state.items} onSortEnd={this.onSortEnd} />
+            </Card.Content>
+          </Card>
           <Form onSubmit={this.handleSubmit}>
             <label>Current admin:</label>
             <Form.Input type="text" value={this.state.room.admin} onChange={this.handleAdmin} />
