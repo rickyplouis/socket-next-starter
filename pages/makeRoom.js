@@ -1,10 +1,8 @@
-import { Component } from 'react'
-import io from 'socket.io-client'
-import fetch from 'isomorphic-fetch'
-
-import Link from 'next/link';
-
-import Router from 'next/router'
+import { Component } from 'react';
+import io from 'socket.io-client';
+import Router from 'next/router';
+import PageContainer from '../components/pageContainer';
+import { Form, Button } from 'semantic-ui-react';
 
 const uuidv1 = require('uuid/v1');
 
@@ -19,9 +17,9 @@ export default class MakeRoom extends Component {
     super(props);
     this.state = {
       rooms: this.props.rooms,
-      inputName: '',
-      inputPassword: '',
-      inputMinutes: 0,
+      admin: '',
+      password: '',
+      duration: 0,
     }
     this.handleAdmin = this.handleAdmin.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -45,34 +43,40 @@ export default class MakeRoom extends Component {
     this.setState(state => ({ rooms: state.rooms.concat(room) }))
   }
 
+
+  //Form Handlers
+
   handleAdmin = event => {
-    this.setState({ inputName: event.target.value })
+    this.setState({ admin: event.target.value })
   }
 
   handlePassword = event => {
-    this.setState({ inputPassword: event.target.value })
+    this.setState({ password: event.target.value })
   }
 
   handleDuration = event => {
-    this.setState({ inputMinutes: event.target.value })
+    this.setState({ duration: event.target.value })
   }
 
-  // send messages to server and add them to the state
+  makeRoom(roomID){
+    return {
+      id: roomID,
+      createdAt: new Date(),
+      admin: this.state.admin,
+      password: this.state.password,
+      duration: this.state.duration,
+      agenda: []
+    }
+  }
+
   handleSubmit = event => {
     event.preventDefault()
     let roomID = uuidv1();
 
-    const room = {
-      id: roomID,
-      createdAt: new Date(),
-      admin: this.state.inputName,
-      password: this.state.inputPassword,
-      duration: this.state.inputMinutes,
-      agenda: []
-    }
+    let room = this.makeRoom(roomID)
 
     this.setState(state => ({
-      rooms: state.rooms.concat(room)
+      rooms: state.rooms.concat(this.makeRoom(room))
     }))
 
     Router.push({
@@ -85,36 +89,34 @@ export default class MakeRoom extends Component {
   }
 
   disableSubmit(){
-    return this.state.inputName.length == 0 || this.state.inputPassword.length == 0 || this.state.inputMinutes == 0;
+    return this.state.admin.length == 0 || this.state.password.length == 0 || this.state.duration == 0;
   }
 
   render () {
     return (
-      <main>
-        <div>
-          <form onSubmit={this.handleSubmit}>
+      <PageContainer>
+          <Form onSubmit={this.handleSubmit}>
             <input
               onChange={this.handleAdmin}
               type='text'
               placeholder='Enter Your Name'
-              value={this.state.inputName}
+              value={this.state.admin}
             />
             <input
               onChange={this.handlePassword}
               type='text'
               placeholder='Enter Your Room Password'
-              value={this.state.inputPassword}
+              value={this.state.password}
             />
             <input
               onChange={this.handleDuration}
               type='number'
               placeholder='Enter Duration'
-              value={this.state.inputMinutes}
+              value={this.state.duration}
             />
-          <button disabled={this.disableSubmit()}>Send</button>
-          </form>
-        </div>
-      </main>
+          <Button disabled={this.disableSubmit()}>Send</Button>
+        </Form>
+      </PageContainer>
     )
   }
 }
