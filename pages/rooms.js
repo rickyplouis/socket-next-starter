@@ -143,29 +143,29 @@ export default class RoomPage extends React.Component {
   }
 
   handleTopic = event => {
-    this.setState({
+    return this.setState({
       inputTopic: event.target.value,
       room: this.state.room
     })
   }
 
-  makeAgenda(){
-    return this.state.room.agenda.concat({'name': this.state.inputTopic})
+  updateState(){
+      this.setState({
+        room: {
+          id: this.state.id,
+          admin: this.state.room.admin,
+          password: this.state.room.password,
+          duration: this.state.room.duration,
+          agenda: this.state.room.agenda.concat({'name': this.state.inputTopic})
+        }
+      })
   }
+
 
   submitTopic = event => {
     event.preventDefault();
-
-    this.setState({
-      room: {
-        id: this.state.id,
-        admin: event.target.value,
-        password: this.state.room.password,
-        agenda: this.makeAgenda()
-      }
-    })
-
-    this.socket.emit('updateRoom', this.state.room)
+    console.log('inputTopic', this.state.inputTopic);
+    Promise.all([this.updateState()]).then( () => this.socket.emit('updateRoom', this.state.room))
   }
 
   handleSubmit = event => {

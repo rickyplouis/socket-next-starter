@@ -21,6 +21,7 @@ export default class MakeRoom extends Component {
       password: '',
       confirmPassword: '',
       duration: 0,
+      agenda: []
     }
     this.handleAdmin = this.handleAdmin.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
