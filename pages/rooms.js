@@ -139,7 +139,15 @@ export default class RoomPage extends React.Component {
   }
 
   renderTopics(){
-    return this.state.room.agenda.map( (topic) => (<div>{topic.name}</div>) )
+    let index = 0;
+    return this.state.room.agenda.map( (topic) =>
+            (<Card.Content key={index++}>
+                  <Card.Header>
+                    <Header as="h3" floated="left">
+                      {topic.name}
+                    </Header>
+                  </Card.Header>
+                </Card.Content>) )
   }
 
   handleTopic = event => {
@@ -164,7 +172,6 @@ export default class RoomPage extends React.Component {
 
   submitTopic = event => {
     event.preventDefault();
-    console.log('inputTopic', this.state.inputTopic);
     Promise.all([this.updateState()]).then( () => this.socket.emit('updateRoom', this.state.room))
   }
 
@@ -213,13 +220,7 @@ export default class RoomPage extends React.Component {
                 </Feed>
               </Card.Header>
             </Card.Content>
-            <Card.Content>
-              <Card.Header>
-                <Header as="h3" floated="left">
-                  Marketing
-                </Header>
-              </Card.Header>
-            </Card.Content>
+            {this.renderTopics()}
             <Card.Content>
               <SortableList items={this.state.items} onSortEnd={this.onSortEnd} />
             </Card.Content>
@@ -229,7 +230,6 @@ export default class RoomPage extends React.Component {
             <Form.Input type="text" value={this.state.room.admin} onChange={this.handleAdmin} />
             <Button disabled={this.disableSubmit()}>Send</Button>
           </Form>
-          {this.renderTopics()}
           <Form>
             <label>Add Topic:</label>
             <Form.Input type="text" value={this.state.inputTopic} onChange={this.handleTopic} />
