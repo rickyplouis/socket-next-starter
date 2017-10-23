@@ -7,7 +7,7 @@ import PageContainer from '../components/pageContainer'
 import Timer from '../components/timer'
 import CardComponent from '../components/cardComponent'
 
-import { Header, Form, Button, Card, Feed, Icon } from 'semantic-ui-react'
+import { Header, Form, Button, Card, Feed, Icon, Input } from 'semantic-ui-react'
 import {SortableContainer, SortableElement, arrayMove} from 'react-sortable-hoc';
 
 const uuidv1 = require('uuid/v1');
@@ -139,15 +139,42 @@ export default class RoomPage extends React.Component {
     })
   }
 
+  updateAgenda = (newAgenda) => {
+    this.setState({
+      inputTopic: this.state.inputTopic,
+      room: {
+        id: this.state.id,
+        admin: this.state.room.admin,
+        password: this.state.room.password,
+        agenda: newAgenda
+      }
+    })
+    this.socket.emit('updateRoom', this.state.room)
+  }
+
+  changeTopicTitle = (event, topic) => {
+    event.preventDefault();
+    let index = this.findTopicIndex(topic);
+    var newAgenda = this.state.room.agenda;
+    newAgenda[index].name = event.target.value
+    this.updateAgenda(newAgenda);
+  }
+
+  removeTopic = (e, topic) => {
+    event.preventDefault();
+
+    let index = this.findTopicIndex(topic);
+    var newAgenda = this.state.room.agenda;
+    newAgenda.splice(index, 1);
+    this.updateAgenda(newAgenda);
+  }
+
   renderTopics(){
     let index = 0;
     return this.state.room.agenda.map( (topic) =>
             (<Card.Content key={index++}>
                   <Card.Header>
-                    <Header as="h3" floated="left">
-                      {topic.name}
-                    </Header>
-                    <Button onClick={() => console.log('id is', topic.id)} >Testing</Button>
+                    <Input action="Hello" placeholder='Search...' value={topic.name} onChange={(e) => this.changeTopicTitle(e, topic)} /><Button onClick={(e) => this.removeTopic(e, topic)}>Del</Button>
                   </Card.Header>
                 </Card.Content>) )
   }
@@ -159,22 +186,42 @@ export default class RoomPage extends React.Component {
     })
   }
 
-  updateState(){
-      this.setState({
-        room: {
-          id: this.state.id,
-          admin: this.state.room.admin,
-          password: this.state.room.password,
-          duration: this.state.room.duration,
-          agenda: this.state.room.agenda.concat({'id': uuidv1(), 'name': this.state.inputTopic})
-        }
-      })
+  findTopicIndex = (topic) => {
+    let agenda = this.state.room.agenda
+    if (agenda.length == 0){
+      return -1
+    }
+    for (let x = 0; x < agenda.length; x++){
+      if (agenda[x].id == topic.id){
+        return x;
+      }
+    }
+  }
+
+
+
+  addTopic(){
+    let topic = {
+      'id': uuidv1(),
+      'name': this.state.inputTopic
+    }
+
+    this.setState({
+      room: {
+        id: this.state.id,
+        admin: this.state.room.admin,
+        password: this.state.room.password,
+        duration: this.state.room.duration,
+        agenda: this.state.room.agenda.concat(topic)
+      }
+    })
+
   }
 
 
   submitTopic = event => {
     event.preventDefault();
-    Promise.all([this.updateState()]).then( () => this.socket.emit('updateRoom', this.state.room))
+    Promise.all([this.addTopic()]).then( () => this.socket.emit('updateRoom', this.state.room))
   }
 
   handleSubmit = event => {
