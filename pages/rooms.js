@@ -10,6 +10,7 @@ import CardComponent from '../components/cardComponent'
 import { Header, Form, Button, Card, Feed, Icon } from 'semantic-ui-react'
 import {SortableContainer, SortableElement, arrayMove} from 'react-sortable-hoc';
 
+const uuidv1 = require('uuid/v1');
 
 const SortableItem = SortableElement(({value}) =>
   <Feed.Event>
@@ -146,6 +147,7 @@ export default class RoomPage extends React.Component {
                     <Header as="h3" floated="left">
                       {topic.name}
                     </Header>
+                    <Button onClick={() => console.log('id is', topic.id)} >Testing</Button>
                   </Card.Header>
                 </Card.Content>) )
   }
@@ -164,7 +166,7 @@ export default class RoomPage extends React.Component {
           admin: this.state.room.admin,
           password: this.state.room.password,
           duration: this.state.room.duration,
-          agenda: this.state.room.agenda.concat({'name': this.state.inputTopic})
+          agenda: this.state.room.agenda.concat({'id': uuidv1(), 'name': this.state.inputTopic})
         }
       })
   }
