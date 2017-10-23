@@ -7,47 +7,26 @@ import PageContainer from '../components/pageContainer'
 import Timer from '../components/timer'
 import CardComponent from '../components/cardComponent'
 
-import { Header, Form, Button, Card, Feed, Icon, Input } from 'semantic-ui-react'
-import {SortableContainer, SortableElement, arrayMove} from 'react-sortable-hoc';
+import { Header, Form, Button, Card, Feed, Icon, Input, Label } from 'semantic-ui-react'
+
+import SortableList from '../components/SortableList'
+
+import Head from 'next/head';
 
 const uuidv1 = require('uuid/v1');
 
-const SortableItem = SortableElement(({value}) =>
-  <Feed.Event>
-    <Feed.Label>
-      <img src={value.image} />
-    </Feed.Label>
-    <Feed.Content>
-      <Feed.Summary>
-        <Feed.User>{value.name}</Feed.User> will discuss {value.topic}
-        <Feed.Date>{value.time}</Feed.Date>
-      </Feed.Summary>
-    </Feed.Content>
-  </Feed.Event>
-);
 
-const SortableList = SortableContainer(({items}) => {
-  return (
-    <Feed>
-      {items.map((value, index) => (
-        <SortableItem key={`item-${index}`} index={index} value={value} />
-      ))}
-    </Feed>
-  );
-});
 
 
 
 export default class RoomPage extends React.Component {
 
   componentWillReceiveProps(nextProps) {
-    console.log('nextProps', nextProps);
     const { pathname, query } = nextProps.url
     // fetch data based on the new query
   }
 
   static async getInitialProps ({ query: { id } }) {
-    console.log('id is', id);
     const appUrl = process.env.NODE_ENV !== 'production' ? 'http://localhost:3000/rooms' : 'https://robertrules.io/rooms';
     const response = await fetch(appUrl)
     const rooms = await response.json()
@@ -89,36 +68,43 @@ export default class RoomPage extends React.Component {
   constructor(props){
     super(props);
     let targetRoom = {}
-    for (let room of this.props.rooms){
-      if (room.id == this.props.url.query.id){
-        targetRoom = room
+    for (let x = this.props.rooms.length -1; x > -1; x--){
+      if (this.props.rooms[x].id = this.props.url.query.id){
+        targetRoom = this.props.rooms[x];
       }
     }
-    console.log('props at constructor', this.props);
     this.state = {
       room: targetRoom,
       id: this.props.url.query.id,
+      username: '',
+      userConnected: false,
+      inputPassword: '',
+      wrongPassword: false,
       text: 'Hello world',
       inputTopic: '',
+      inputItem: {
+        'details': '',
+        'duration': 0
+      },
       items: [
               {
                 _id: 'p1',
                 name: 'Elliot',
-                image: '/static/images/elliot.jpg',
+                image: '/static/images/elephant-avatar.png',
                 time: '10 Mins',
                 topic: 'Marketing'
               },
               {
                 _id: 'p2',
                 name: 'Helen',
-                image: '/static/images/helen.jpg',
+                image: '/static/images/fox-avatar.png',
                 time: '20 mins',
                 topic: 'Engineering'
               },
               {
                 _id: 'p3',
                 name: 'Chris',
-                image: '/static/images/chris.jpg',
+                image: '/static/images/lion-avatar.png',
                 time: '10 mins',
                 topic: 'Sales'
               }
@@ -149,6 +135,7 @@ export default class RoomPage extends React.Component {
         agenda: newAgenda
       }
     })
+    console.log('updating room with', this.state.room);
     this.socket.emit('updateRoom', this.state.room)
   }
 
@@ -169,6 +156,53 @@ export default class RoomPage extends React.Component {
     this.updateAgenda(newAgenda);
   }
 
+  handleItemDetails = (event) => {
+    event.preventDefault();
+    let newItem = this.state.inputItem;
+    newItem.details = event.target.value
+    this.setState({
+      inputItem: newItem
+    })
+  }
+
+  handleItemDuration = (event) => {
+    event.preventDefault();
+    let newItem = this.state.inputItem;
+    newItem.duration = event.target.value
+    this.setState({
+      inputItem: newItem
+    })
+  }
+
+  addItem = (event, topic) => {
+    event.preventDefault();
+    let index = this.findTopicIndex(topic);
+    let item = {
+      'name': this.state.username,
+      'details': this.state.inputItem.details,
+      'duration': this.state.inputItem.duration
+    }
+    var newAgenda = this.state.room.agenda;
+    newAgenda[index].items.push(item);
+    this.updateAgenda(newAgenda);
+  }
+
+  renderItem = (topic) => {
+    return (
+        <Form size={'tiny'} onSubmit={(e) => this.addItem(e, topic)}>
+          <Form.Group>
+            <Form.Input label="I will talk about..." placeholder='How we will create a product roadmap' width={'eight'} name='details' value={this.state.inputItem.details} onChange={this.handleItemDetails} />
+            <Form.Input label="For..." labelPosition='right' width={'three'} type='number' placeholder='Amount' name='duration' value={this.state.inputItem.duration}  onChange={this.handleItemDuration}>
+              <input />
+              <Label>Mins</Label>
+            </Form.Input>
+            <Form.Button label="Submit" content='Submit' disabled={this.state.inputItem.details.length === 0 || this.state.inputItem.duration === 0} />
+          </Form.Group>
+        </Form>
+    )
+  }
+
+
   renderTopics(){
     let index = 0;
     return this.state.room.agenda.map( (topic) =>
@@ -183,14 +217,7 @@ export default class RoomPage extends React.Component {
                     </Form.Field>
                   </Form>
                   <SortableList items={this.state.items} onSortEnd={this.onSortEnd} />
-                  <Form size={'tiny'}>
-                    <Form.Group>
-                      <Form.Input label="My name is" placeholder='Enter your name' name='name' value={""} onChange={this.handleChange} />
-                      <Form.Input label="I will talk about..." placeholder='How we will create a product roadmap' width={'eight'} name='detail' value={""} onChange={this.handleChange} />
-                      <Form.Input label="Duration" placeholder='10 mins' width={'two'} name='duration' value={0} onChange={this.handleChange} />
-                      <Form.Button label="Submit" content='Submit' />
-                    </Form.Group>
-                  </Form>
+                  {this.renderItem(topic)}
                 </Card.Content>))
               }
 
@@ -248,6 +275,18 @@ export default class RoomPage extends React.Component {
     return this.state.room.admin.length == 0;
   }
 
+  renderAddTopicForm = () => {
+    return (
+      <Card.Content>
+        <Form>
+          <label>Add Topic:</label>
+          <Form.Input type="text" value={this.state.inputTopic} onChange={this.handleTopic} />
+          <Button onClick={this.submitTopic}>Send</Button>
+        </Form>
+      </Card.Content>
+    )
+  }
+
   renderRoom = () => {
     let objectIsEmpty = Object.keys(this.state.room).length === 0 && this.state.room.constructor === Object
     if (objectIsEmpty){
@@ -272,7 +311,7 @@ export default class RoomPage extends React.Component {
                 </Header>
                 <Feed>
                   <Feed.Event>
-                    <Feed.Label image='/static/images/christian.jpg' />
+                    <Feed.Label image='/static/images/moose-avatar.png' />
                     <Feed.Content>
                       <Feed.Date content='10 minutes totlal' />
                       <Feed.Summary>
@@ -285,25 +324,71 @@ export default class RoomPage extends React.Component {
               </Card.Header>
             </Card.Content>
             {this.renderTopics()}
+            {this.renderAddTopicForm()}
           </Card>
           <Form onSubmit={this.handleSubmit}>
-            <label>Current admin:</label>
-            <Form.Input type="text" value={this.state.room.admin} onChange={this.handleAdmin} />
-            <Button disabled={this.disableSubmit()}>Send</Button>
-          </Form>
-          <Form>
-            <label>Add Topic:</label>
-            <Form.Input type="text" value={this.state.inputTopic} onChange={this.handleTopic} />
-            <Button onClick={this.submitTopic}>Send</Button>
+            <label>My username:</label>
+            <Form.Input type="text" placeholder="Enter your name" value={this.state.username} onChange={ (e) => this.handleUsername(e)} />
           </Form>
         </div>
       )}
   }
 
+  connectUser = (e) => {
+    e.preventDefault();
+    if (this.state.inputPassword !== this.state.room.password){
+      this.setState({
+        wrongPassword: true,
+        inputPassword: ''
+      })
+    } else {
+      this.setState({
+        userConnected: true
+      })
+    }
+  }
+
+  handleUsername = (event) => {
+    event.preventDefault();
+    this.setState({
+      username: event.target.value
+    })
+  }
+
+  handlePassword = (event) => {
+    event.preventDefault();
+    this.setState({
+      inputPassword: event.target.value
+    })
+  }
+
+  renderUsernameForm(){
+    return (
+      <div style={{margin: '0 auto', display: 'table'}}>
+        <Header as="h2">Enter your name and password to join</Header>
+        <Form size={'tiny'} onSubmit={(e) => this.connectUser(e)} >
+          <Form.Group>
+            <Form.Input placeholder='Enter your name' name='name' value={this.state.username} onChange={ (e) => this.handleUsername(e)} />
+            <Form.Input placeholder='Enter the room password' type="password" error={this.state.wrongPassword} name='password' value={this.state.inputPassword} onChange={ (e) => this.handlePassword(e)} />
+            <Form.Button content='Submit' disabled={this.state.username.length == 0 || this.state.inputPassword.length == 0} />
+          </Form.Group>
+        </Form>
+      </div>
+
+    )
+  }
+
+  renderPage (){
+    return this.state.userConnected ? <div>{this.renderRoom()}</div> : <div>{this.renderUsernameForm()}</div>
+  }
+
   render(){
     return(
       <PageContainer>
-        {this.renderRoom()}
+        <Head>
+          <a href="http://www.freepik.com/free-vector/animal-avatars-in-flat-design_772910.htm">Animal Avatars by Freepik</a>
+        </Head>
+        {this.renderPage()}
       </PageContainer>
     )
   }
