@@ -172,12 +172,27 @@ export default class RoomPage extends React.Component {
   renderTopics(){
     let index = 0;
     return this.state.room.agenda.map( (topic) =>
-            (<Card.Content key={index++}>
-                  <Card.Header>
-                    <Input action="Hello" placeholder='Search...' value={topic.name} onChange={(e) => this.changeTopicTitle(e, topic)} /><Button onClick={(e) => this.removeTopic(e, topic)}>Del</Button>
-                  </Card.Header>
-                </Card.Content>) )
-  }
+            (
+              <Card.Content key={index++}>
+                <Header as="h2">{topic.name}</Header>
+                  <Form size={'large'} width={16}>
+                    <Form.Field inline>
+                      <label>Edit Topic:</label>
+                      <Input placeholder="Enter Topic Title" value={topic.name} onChange={(e) => this.changeTopicTitle(e, topic)} ></Input>
+                      <Button onClick={(e) => this.removeTopic(e, topic)}>Delete</Button>
+                    </Form.Field>
+                  </Form>
+                  <SortableList items={this.state.items} onSortEnd={this.onSortEnd} />
+                  <Form size={'tiny'}>
+                    <Form.Group>
+                      <Form.Input label="My name is" placeholder='Enter your name' name='name' value={""} onChange={this.handleChange} />
+                      <Form.Input label="I will talk about..." placeholder='How we will create a product roadmap' width={'eight'} name='detail' value={""} onChange={this.handleChange} />
+                      <Form.Input label="Duration" placeholder='10 mins' width={'two'} name='duration' value={0} onChange={this.handleChange} />
+                      <Form.Button label="Submit" content='Submit' />
+                    </Form.Group>
+                  </Form>
+                </Card.Content>))
+              }
 
   handleTopic = event => {
     return this.setState({
@@ -199,11 +214,11 @@ export default class RoomPage extends React.Component {
   }
 
 
-
   addTopic(){
     let topic = {
       'id': uuidv1(),
-      'name': this.state.inputTopic
+      'name': this.state.inputTopic,
+      'items': []
     }
 
     this.setState({
@@ -270,9 +285,6 @@ export default class RoomPage extends React.Component {
               </Card.Header>
             </Card.Content>
             {this.renderTopics()}
-            <Card.Content>
-              <SortableList items={this.state.items} onSortEnd={this.onSortEnd} />
-            </Card.Content>
           </Card>
           <Form onSubmit={this.handleSubmit}>
             <label>Current admin:</label>
