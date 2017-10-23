@@ -8,16 +8,10 @@ import Timer from '../components/timer'
 import CardComponent from '../components/cardComponent'
 
 import { Header, Form, Button, Card, Feed, Icon, Input, Label } from 'semantic-ui-react'
-
 import SortableList from '../components/SortableList'
-
 import Head from 'next/head';
 
 const uuidv1 = require('uuid/v1');
-
-
-
-
 
 export default class RoomPage extends React.Component {
 
@@ -68,9 +62,9 @@ export default class RoomPage extends React.Component {
   constructor(props){
     super(props);
     let targetRoom = {}
-    for (let x = this.props.rooms.length -1; x > -1; x--){
-      if (this.props.rooms[x].id = this.props.url.query.id){
-        targetRoom = this.props.rooms[x];
+    for (let room of this.props.rooms){
+      if (room.id === this.props.url.query.id){
+        targetRoom = room;
       }
     }
     this.state = {
@@ -109,21 +103,9 @@ export default class RoomPage extends React.Component {
                 topic: 'Sales'
               }
             ]
-    }
-    console.log('state is', this.state);
-  }
-
-  handleAdmin = event => {
-    this.setState({
-      inputTopic: this.state.inputTopic,
-      room: {
-        id: this.state.id,
-        admin: event.target.value,
-        password: this.state.room.password,
-        agenda: this.state.room.agenda
-      }
-    })
-  }
+          }
+          console.log('this.state.room', this.state.room);
+        }
 
   updateAgenda = (newAgenda) => {
     this.setState({
@@ -176,20 +158,40 @@ export default class RoomPage extends React.Component {
 
   addItem = (event, topic) => {
     event.preventDefault();
-    let index = this.findTopicIndex(topic);
+    let topicIndex = this.findTopicIndex(topic);
+    var newAgenda = this.state.room.agenda;
     let item = {
       'name': this.state.username,
       'details': this.state.inputItem.details,
       'duration': this.state.inputItem.duration
     }
-    var newAgenda = this.state.room.agenda;
-    newAgenda[index].items.push(item);
-    this.updateAgenda(newAgenda);
+
+    newAgenda[topicIndex].items.push(item);
+    this.setState({
+      room: {
+        id: this.state.id,
+        admin: this.state.room.admin,
+        password: this.state.room.password,
+        duration: this.state.room.duration,
+        agenda: newAgenda,
+      },
+      inputItem: {
+        details: "",
+        duration: 0
+      }
+    })
+  }
+
+  submitItem = (event, topic) => {
+    event.preventDefault();
+    Promise.all([this.addItem(event, topic)]).then( () => {
+      this.socket.emit('updateRoom', this.state.room)
+    })
   }
 
   renderItem = (topic) => {
     return (
-        <Form size={'tiny'} onSubmit={(e) => this.addItem(e, topic)}>
+        <Form size={'tiny'} onSubmit={(e) => this.submitItem(e, topic)}>
           <Form.Group>
             <Form.Input label="I will talk about..." placeholder='How we will create a product roadmap' width={'eight'} name='details' value={this.state.inputItem.details} onChange={this.handleItemDetails} />
             <Form.Input label="For..." labelPosition='right' width={'three'} type='number' placeholder='Amount' name='duration' value={this.state.inputItem.duration}  onChange={this.handleItemDuration}>
@@ -216,7 +218,7 @@ export default class RoomPage extends React.Component {
                       <Button onClick={(e) => this.removeTopic(e, topic)}>Delete</Button>
                     </Form.Field>
                   </Form>
-                  <SortableList items={this.state.items} onSortEnd={this.onSortEnd} />
+                  <SortableList items={this.state.room.agenda[this.findTopicIndex(topic)].items} onSortEnd={this.onSortEnd} />
                   {this.renderItem(topic)}
                 </Card.Content>))
               }
@@ -369,7 +371,7 @@ export default class RoomPage extends React.Component {
         <Form size={'tiny'} onSubmit={(e) => this.connectUser(e)} >
           <Form.Group>
             <Form.Input placeholder='Enter your name' name='name' value={this.state.username} onChange={ (e) => this.handleUsername(e)} />
-            <Form.Input placeholder='Enter the room password' type="password" error={this.state.wrongPassword} name='password' value={this.state.inputPassword} onChange={ (e) => this.handlePassword(e)} />
+            <Form.Input placeholder='Enter the room password' type="password" error={this.state.wrongPassword && this.state.inputPassword.length == 0} name='password' value={this.state.inputPassword} onChange={ (e) => this.handlePassword(e)} />
             <Form.Button content='Submit' disabled={this.state.username.length == 0 || this.state.inputPassword.length == 0} />
           </Form.Group>
         </Form>

@@ -4,12 +4,12 @@ import {SortableContainer, SortableElement, arrayMove} from 'react-sortable-hoc'
 const SortableItem = SortableElement(({value}) =>
   <Feed.Event>
     <Feed.Label>
-      <img src={value.image} />
+      <img src={'/static/images/elephant-avatar.png'} />
     </Feed.Label>
     <Feed.Content>
       <Feed.Summary>
-        <Feed.User>{value.name}</Feed.User> will discuss {value.topic}
-        <Feed.Date>{value.time}</Feed.Date>
+        <Feed.User>{value.name}</Feed.User> will discuss {value.details}
+        <Feed.Date>{value.duration} mins</Feed.Date>
       </Feed.Summary>
     </Feed.Content>
   </Feed.Event>
