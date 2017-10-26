@@ -107,6 +107,18 @@ export default class RoomPage extends React.Component {
           console.log('this.state.room', this.state.room);
         }
 
+
+  shiftAgenda = () => {
+    let agenda = this.state.room.agenda;
+
+    if (agenda[0].items.length > 1){
+      agenda[0].items.shift()
+    } else{
+      agenda.shift()
+    }
+    return agenda
+  }
+
   updateAgenda = (newAgenda) => {
     this.setState({
       inputTopic: this.state.inputTopic,
@@ -121,6 +133,10 @@ export default class RoomPage extends React.Component {
     this.socket.emit('updateRoom', this.state.room)
   }
 
+  handleQueue = () => {
+    this.updateAgenda(this.shiftAgenda());
+  }
+
   changeTopicTitle = (event, topic) => {
     event.preventDefault();
     let index = this.findTopicIndex(topic);
@@ -128,6 +144,7 @@ export default class RoomPage extends React.Component {
     newAgenda[index].name = event.target.value
     this.updateAgenda(newAgenda);
   }
+
 
   removeTopic = (e, topic) => {
     event.preventDefault();
@@ -325,6 +342,9 @@ export default class RoomPage extends React.Component {
                 </Feed>
               </Card.Header>
             </Card.Content>
+            <Button onClick={this.handleQueue}>
+              Handle Queue
+            </Button>
             {this.renderTopics()}
             {this.renderAddTopicForm()}
           </Card>
