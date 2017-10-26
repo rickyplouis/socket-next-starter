@@ -11,9 +11,7 @@ import { Header, Form, Button, Card, Feed, Icon, Input, Label } from 'semantic-u
 import SortableList from '../components/SortableList'
 import Head from 'next/head';
 
-import { findTopicIndex, deleteTopic, changeName, shiftAgenda } from '../controllers/agendaController'
-
-const uuidv1 = require('uuid/v1');
+import { findTopicIndex, addTopic, deleteTopic, changeName, shiftAgenda } from '../controllers/agendaController'
 
 export default class RoomPage extends React.Component {
 
@@ -78,36 +76,13 @@ export default class RoomPage extends React.Component {
       wrongPassword: false,
       text: 'Hello world',
       inputTopic: '',
-      inputItem: {
+      itemForm: {
         'details': '',
         'duration': 0
-      },
-      items: [
-              {
-                _id: 'p1',
-                name: 'Elliot',
-                image: '/static/images/elephant-avatar.png',
-                time: '10 Mins',
-                topic: 'Marketing'
-              },
-              {
-                _id: 'p2',
-                name: 'Helen',
-                image: '/static/images/fox-avatar.png',
-                time: '20 mins',
-                topic: 'Engineering'
-              },
-              {
-                _id: 'p3',
-                name: 'Chris',
-                image: '/static/images/lion-avatar.png',
-                time: '10 mins',
-                topic: 'Sales'
-              }
-            ]
-          }
-          console.log('this.state.room', this.state.room);
-        }
+      }
+    }
+    console.log('this.state.room', this.state.room);
+  }
 
   updateAgenda = (newAgenda) => {
     this.setState({
@@ -127,7 +102,7 @@ export default class RoomPage extends React.Component {
   }
 
   changeTopicName = (event, topic, agenda) => {
-    changeName(event, topic, agenda).then( () => this.updateAgenda(newAgenda) );
+    changeName(event, topic, agenda).then( (newAgenda) => this.updateAgenda(newAgenda) );
   }
 
   removeTopic = (e, topic, agenda) => {
@@ -136,19 +111,19 @@ export default class RoomPage extends React.Component {
 
   handleItemDetails = (event) => {
     event.preventDefault();
-    let newItem = this.state.inputItem;
+    let newItem = this.state.itemForm;
     newItem.details = event.target.value
     this.setState({
-      inputItem: newItem
+      itemForm: newItem
     })
   }
 
   handleItemDuration = (event) => {
     event.preventDefault();
-    let newItem = this.state.inputItem;
+    let newItem = this.state.itemForm;
     newItem.duration = event.target.value
     this.setState({
-      inputItem: newItem
+      itemForm: newItem
     })
   }
 
@@ -158,8 +133,8 @@ export default class RoomPage extends React.Component {
     var newAgenda = this.state.room.agenda;
     let item = {
       'name': this.state.username,
-      'details': this.state.inputItem.details,
-      'duration': this.state.inputItem.duration
+      'details': this.state.itemForm.details,
+      'duration': this.state.itemForm.duration
     }
 
     newAgenda[topicIndex].items.push(item);
@@ -171,7 +146,7 @@ export default class RoomPage extends React.Component {
         duration: this.state.room.duration,
         agenda: newAgenda,
       },
-      inputItem: {
+      itemForm: {
         details: "",
         duration: 0
       }
@@ -185,16 +160,20 @@ export default class RoomPage extends React.Component {
     })
   }
 
+  itemFormInvalid = () => {
+    return this.state.itemForm.details.length === 0 || this.state.itemForm.duration === 0;
+  }
+
   renderItem = (topic) => {
     return (
         <Form size={'tiny'} onSubmit={(e) => this.submitItem(e, topic)}>
           <Form.Group>
-            <Form.Input label="I will talk about..." placeholder='How we will create a product roadmap' width={'eight'} name='details' value={this.state.inputItem.details} onChange={this.handleItemDetails} />
-            <Form.Input label="For..." labelPosition='right' width={'three'} type='number' placeholder='Amount' name='duration' value={this.state.inputItem.duration}  onChange={this.handleItemDuration}>
+            <Form.Input label="I will talk about..." placeholder='How we will create a product roadmap' width={'eight'} name='details' value={this.state.itemForm.details} onChange={this.handleItemDetails} />
+            <Form.Input label="For..." labelPosition='right' width={'three'} type='number' placeholder='Amount' name='duration' value={this.state.itemForm.duration}  onChange={this.handleItemDuration}>
               <input />
               <Label>Mins</Label>
             </Form.Input>
-            <Form.Button label="Submit" content='Submit' disabled={this.state.inputItem.details.length === 0 || this.state.inputItem.duration === 0} />
+            <Form.Button label="Submit" content='Submit' disabled={this.itemFormInvalid()} />
           </Form.Group>
         </Form>
     )
@@ -225,30 +204,10 @@ export default class RoomPage extends React.Component {
     })
   }
 
-
-  addTopic(){
-    let topic = {
-      'id': uuidv1(),
-      'name': this.state.inputTopic,
-      'items': []
-    }
-
-    this.setState({
-      room: {
-        id: this.state.id,
-        admin: this.state.room.admin,
-        password: this.state.room.password,
-        duration: this.state.room.duration,
-        agenda: this.state.room.agenda.concat(topic)
-      }
-    })
-
-  }
-
-
-  submitTopic = event => {
+  submitTopic = (event, topicName, agenda) => {
     event.preventDefault();
-    Promise.all([this.addTopic()]).then( () => this.socket.emit('updateRoom', this.state.room))
+    addTopic(event, topicName, agenda).then( (newAgenda) => {
+      this.updateAgenda(newAgenda)})
   }
 
   handleSubmit = event => {
@@ -262,7 +221,7 @@ export default class RoomPage extends React.Component {
         <Form>
           <label>Add Topic:</label>
           <Form.Input type="text" value={this.state.inputTopic} onChange={this.handleTopic} />
-          <Button onClick={this.submitTopic}>Send</Button>
+          <Button onClick={(e) => this.submitTopic(e, this.state.inputTopic, this.state.room.agenda)}>Send</Button>
         </Form>
       </Card.Content>
     )
@@ -280,7 +239,7 @@ export default class RoomPage extends React.Component {
           <Card style={{margin: '0 auto', display: 'table', width: '50vw'}}>
             <Card.Content>
               <Card.Header>
-                <Header as="h1">
+                <Header as="h2">
                   Meeting Agenda
                 </Header>
               </Card.Header>

@@ -1,3 +1,5 @@
+const uuidv1 = require('uuid/v1');
+
 export function findTopicIndex (topic, agenda) {
   if (agenda.length == 0){
     return -1
@@ -40,5 +42,18 @@ export function shiftAgenda(agenda){
       newAgenda.shift();
     }
     resolve(newAgenda)
+  });
+}
+
+export function addTopic(event, topicName, agenda){
+  event.preventDefault();
+  return new Promise(function(resolve, reject) {
+    let topic = {
+      'id': uuidv1(),
+      'name': topicName,
+      'items': []
+    }
+    let newAgenda = agenda.concat(topic);
+    resolve(newAgenda);
   });
 }
