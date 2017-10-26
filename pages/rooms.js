@@ -11,6 +11,8 @@ import { Header, Form, Button, Card, Feed, Icon, Input, Label } from 'semantic-u
 import SortableList from '../components/SortableList'
 import Head from 'next/head';
 
+import { findTopicIndex, deleteTopic, changeName, shiftAgenda } from '../controllers/agendaController'
+
 const uuidv1 = require('uuid/v1');
 
 export default class RoomPage extends React.Component {
@@ -107,18 +109,6 @@ export default class RoomPage extends React.Component {
           console.log('this.state.room', this.state.room);
         }
 
-
-  shiftAgenda = () => {
-    let agenda = this.state.room.agenda;
-
-    if (agenda[0].items.length > 1){
-      agenda[0].items.shift()
-    } else{
-      agenda.shift()
-    }
-    return agenda
-  }
-
   updateAgenda = (newAgenda) => {
     this.setState({
       inputTopic: this.state.inputTopic,
@@ -129,30 +119,19 @@ export default class RoomPage extends React.Component {
         agenda: newAgenda
       }
     })
-    console.log('updating room with', this.state.room);
     this.socket.emit('updateRoom', this.state.room)
   }
 
   handleQueue = () => {
-    this.updateAgenda(this.shiftAgenda());
+    shiftAgenda(this.state.room.agenda).then( (newAgenda) => this.updateAgenda(newAgenda))
   }
 
-  changeTopicTitle = (event, topic) => {
-    event.preventDefault();
-    let index = this.findTopicIndex(topic);
-    var newAgenda = this.state.room.agenda;
-    newAgenda[index].name = event.target.value
-    this.updateAgenda(newAgenda);
+  changeTopicName = (event, topic, agenda) => {
+    changeName(event, topic, agenda).then( () => this.updateAgenda(newAgenda) );
   }
 
-
-  removeTopic = (e, topic) => {
-    event.preventDefault();
-
-    let index = this.findTopicIndex(topic);
-    var newAgenda = this.state.room.agenda;
-    newAgenda.splice(index, 1);
-    this.updateAgenda(newAgenda);
+  removeTopic = (e, topic, agenda) => {
+    deleteTopic(e, topic, agenda).then( (newAgenda) => this.updateAgenda(newAgenda) )
   }
 
   handleItemDetails = (event) => {
@@ -175,7 +154,7 @@ export default class RoomPage extends React.Component {
 
   addItem = (event, topic) => {
     event.preventDefault();
-    let topicIndex = this.findTopicIndex(topic);
+    let topicIndex = findTopicIndex(topic, this.state.room.agenda);
     var newAgenda = this.state.room.agenda;
     let item = {
       'name': this.state.username,
@@ -221,7 +200,6 @@ export default class RoomPage extends React.Component {
     )
   }
 
-
   renderTopics(){
     let index = 0;
     return this.state.room.agenda.map( (topic) =>
@@ -231,11 +209,11 @@ export default class RoomPage extends React.Component {
                   <Form size={'large'} width={16}>
                     <Form.Field inline>
                       <label>Edit Topic:</label>
-                      <Input placeholder="Enter Topic Title" value={topic.name} onChange={(e) => this.changeTopicTitle(e, topic)} ></Input>
-                      <Button onClick={(e) => this.removeTopic(e, topic)}>Delete</Button>
+                      <Input placeholder="Enter Topic Title" value={topic.name} onChange={(e) => this.changeTopicName(e, topic, this.state.room.agenda)} ></Input>
+                      <Button onClick={(e) => this.removeTopic(e, topic, this.state.room.agenda)}>Delete</Button>
                     </Form.Field>
                   </Form>
-                  <SortableList items={this.state.room.agenda[this.findTopicIndex(topic)].items} onSortEnd={this.onSortEnd} />
+                  <SortableList items={this.state.room.agenda[findTopicIndex(topic, this.state.room.agenda)].items} onSortEnd={this.onSortEnd} />
                   {this.renderItem(topic)}
                 </Card.Content>))
               }
@@ -245,18 +223,6 @@ export default class RoomPage extends React.Component {
       inputTopic: event.target.value,
       room: this.state.room
     })
-  }
-
-  findTopicIndex = (topic) => {
-    let agenda = this.state.room.agenda
-    if (agenda.length == 0){
-      return -1
-    }
-    for (let x = 0; x < agenda.length; x++){
-      if (agenda[x].id == topic.id){
-        return x;
-      }
-    }
   }
 
 
@@ -290,10 +256,6 @@ export default class RoomPage extends React.Component {
     this.socket.emit('updateRoom', this.state.room)
   }
 
-  disableSubmit(){
-    return this.state.room.admin.length == 0;
-  }
-
   renderAddTopicForm = () => {
     return (
       <Card.Content>
@@ -306,11 +268,11 @@ export default class RoomPage extends React.Component {
     )
   }
 
+  roomIsEmpty = (room) => {
+    return Object.keys(room).length === 0 && room.constructor === Object
+  }
+
   renderRoom = () => {
-    let objectIsEmpty = Object.keys(this.state.room).length === 0 && this.state.room.constructor === Object
-    if (objectIsEmpty){
-      return <div>No room available at this id</div>
-    } else {
       return (
         <div style={{margin: '0 auto', display: 'table'}}>
           <Header as="h2">On room.js</Header>
@@ -353,7 +315,7 @@ export default class RoomPage extends React.Component {
             <Form.Input type="text" placeholder="Enter your name" value={this.state.username} onChange={ (e) => this.handleUsername(e)} />
           </Form>
         </div>
-      )}
+      )
   }
 
   connectUser = (e) => {
@@ -401,7 +363,12 @@ export default class RoomPage extends React.Component {
   }
 
   renderPage (){
-    return this.state.userConnected ? <div>{this.renderRoom()}</div> : <div>{this.renderUsernameForm()}</div>
+    if (this.roomIsEmpty(this.state.room)){
+      return <div>No room available at this id</div>
+    }
+    else {
+      return this.state.userConnected ? <div>{this.renderRoom()}</div> : <div>{this.renderUsernameForm()}</div>
+    }
   }
 
   render(){
