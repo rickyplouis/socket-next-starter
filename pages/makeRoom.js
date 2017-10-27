@@ -2,7 +2,7 @@ import { Component } from 'react';
 import io from 'socket.io-client';
 import Router from 'next/router';
 import PageContainer from '../components/pageContainer';
-import { Form, Button, Header } from 'semantic-ui-react';
+import { Form, Button, Header, Checkbox } from 'semantic-ui-react';
 
 const uuidv1 = require('uuid/v1');
 
@@ -20,6 +20,7 @@ export default class MakeRoom extends Component {
       admin: '',
       password: '',
       confirmPassword: '',
+      passwordProtected: false,
       duration: 0,
       agenda: []
     }
@@ -46,7 +47,6 @@ export default class MakeRoom extends Component {
     this.setState(state => ({ rooms: state.rooms.concat(room) }))
   }
 
-
   //Form Handlers
 
   handleAdmin = event => {
@@ -71,6 +71,7 @@ export default class MakeRoom extends Component {
       createdAt: new Date(),
       admin: this.state.admin,
       password: this.state.password,
+      passwordProtected: this.state.passwordProtected,
       duration: this.state.duration,
       agenda: this.state.agenda,
       users: [
@@ -106,8 +107,51 @@ export default class MakeRoom extends Component {
     return this.state.confirmPassword !== this.state.password;
   }
 
+  invalidRoomDetails = () => {
+    return this.state.admin.length === 0 || this.state.duration === 0;
+  }
+
   disableSubmit(){
-    return this.state.admin.length == 0 || this.state.password.length == 0 || this.state.duration == 0;
+    if (this.state.passwordProtected){
+      return this.invalidRoomDetails() || this.passwordMismatch() || this.state.password.length === 0
+    } else {
+      return this.invalidRoomDetails()
+    }
+  }
+
+  handleCheckbox = (event) => {
+    event.preventDefault();
+    this.setState({
+      passwordProtected: !this.state.passwordProtected
+    })
+  }
+
+  renderPasswordFields = () => {
+    if (this.state.passwordProtected){
+      return (<div>
+                <Form.Field style={{textAlign: 'left'}}>
+                  <label>Enter Password</label>
+                  <Form.Input
+                    onChange={this.handlePassword}
+                    type='password'
+                    placeholder='Enter Your Room Password'
+                    value={this.state.password}
+                    />
+                </Form.Field>
+                <Form.Field style={{textAlign: 'left'}}>
+                  <label>Confirm Password</label>
+                  <Form.Input
+                    error={this.passwordMismatch() && this.state.confirmPassword.length > 0}
+                    onChange={this.handleConfirmPassword}
+                    type='password'
+                    placeholder='Enter Your Room Password'
+                    value={this.state.confirmPassword}
+                    />
+                </Form.Field>
+              </div>)
+    } else {
+      return <div></div>
+    }
   }
 
   render () {
@@ -125,25 +169,6 @@ export default class MakeRoom extends Component {
                 />
             </Form.Field>
             <Form.Field style={{textAlign: 'left'}}>
-              <label>Enter Password</label>
-              <Form.Input
-                onChange={this.handlePassword}
-                type='password'
-                placeholder='Enter Your Room Password'
-                value={this.state.password}
-                />
-            </Form.Field>
-            <Form.Field style={{textAlign: 'left'}}>
-              <label>Confirm Password</label>
-              <Form.Input
-                error={this.passwordMismatch() && this.state.confirmPassword.length > 0}
-                onChange={this.handleConfirmPassword}
-                type='password'
-                placeholder='Enter Your Room Password'
-                value={this.state.confirmPassword}
-                />
-            </Form.Field>
-            <Form.Field style={{textAlign: 'left'}}>
               <label>Enter Meeting Duration (Mins)</label>
               <Form.Input
                 onChange={this.handleDuration}
@@ -151,7 +176,13 @@ export default class MakeRoom extends Component {
                 placeholder='Enter Duration'
                 value={this.state.duration}
                 />
-              <Button disabled={this.disableSubmit() || this.passwordMismatch()} style={{width: '20vw'}}>Create Room</Button>
+            </Form.Field>
+            {this.renderPasswordFields()}
+            <Form.Field>
+              <Checkbox checked={this.state.passwordProtected} onChange={(e) => this.handleCheckbox(e)} label='Make my room password protected' />
+            </Form.Field>
+            <Form.Field>
+              <Button disabled={this.disableSubmit()} style={{width: '20vw'}}>Create Room</Button>
             </Form.Field>
         </Form>
       </PageContainer>
