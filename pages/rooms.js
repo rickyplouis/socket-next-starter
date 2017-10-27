@@ -7,7 +7,7 @@ import PageContainer from '../components/pageContainer'
 import Timer from '../components/timer'
 import CardComponent from '../components/cardComponent'
 
-import { Header, Form, Button, Card, Feed, Icon, Input, Label } from 'semantic-ui-react'
+import { Header, Form, Button, Card, Feed, Icon, Input, Progress, Label } from 'semantic-ui-react'
 import SortableList from '../components/SortableList'
 import Head from 'next/head';
 
@@ -42,6 +42,13 @@ export default class RoomPage extends React.Component {
   componentDidMount () {
     this.socket = io()
     this.socket.on('updateRoom', this.loadRooms)
+  }
+
+  componentWillMount(){
+    this.setState({
+      initialTime: this.convertTimeToSeconds(this.state.timeObject),
+      seconds: this.convertTimeToSeconds(this.state.timeObject)
+    })
   }
 
   // close socket connection
@@ -79,9 +86,22 @@ export default class RoomPage extends React.Component {
       itemForm: {
         'details': '',
         'duration': 0
-      }
+      },
+      timeObject: {
+        minutes: 2,
+        seconds: 5
+      },
+      inputMins: 0,
+      inputSeconds: 0,
+      initialTime: 0,
+      percent: 100,
+      timerRunning: false
     }
-    console.log('this.state.room', this.state.room);
+      this.timer = 0;
+      this.startTimer = this.startTimer.bind(this);
+      this.countDown = this.countDown.bind(this);
+      this.pauseTimer = this.pauseTimer.bind(this);
+
   }
 
   updateAgenda = (newAgenda) => {
@@ -179,6 +199,12 @@ export default class RoomPage extends React.Component {
     )
   }
 
+  /**
+  *
+  * Topic Components
+  *
+  */
+
   renderTopics(){
     let index = 0;
     return this.state.room.agenda.map( (topic) =>
@@ -231,6 +257,131 @@ export default class RoomPage extends React.Component {
     return Object.keys(room).length === 0 && room.constructor === Object
   }
 
+  /**
+  *
+  * Timer Components
+  */
+
+  convertTimeToSeconds = (timeObject) => {
+    return timeObject.minutes * 60 + timeObject.seconds
+  }
+
+  startTimer() {
+    if (this.state.seconds > 0 && !this.state.timerRunning){
+      this.timer = setInterval(this.countDown, 1000);
+      this.setState({
+        timerRunning: true
+      })
+    }
+  }
+
+
+  countDown() {
+    let seconds = this.state.seconds - 1;
+    if (seconds <= 0) {
+      this.pauseTimer();
+    }
+
+    // Remove one second, set state so a re-render happens.
+    this.setState({
+      seconds: seconds,
+      percent: (seconds / this.state.initialTime) * 100
+    });
+  }
+
+  pauseTimer(){
+    clearInterval(this.timer);
+    this.setState({
+      timerRunning: false
+    })
+  }
+
+  displaySeconds(totalSeconds){
+    let seconds = totalSeconds % 60;
+    return seconds < 10 ? '0' + seconds : seconds;
+  }
+
+  displayMinutes(seconds){
+    let mins = Math.floor(seconds / 60);
+    return mins;
+  }
+
+  handleMins = (event) => {
+    event.preventDefault();
+    this.setState({
+      inputMins: parseInt(event.target.value)
+    })
+  }
+
+  handleSeconds = (event) => {
+    event.preventDefault();
+    this.setState({
+      inputSeconds: parseInt(event.target.value)
+    })
+  }
+
+  setTimer = () => {
+    let totalSeconds = this.state.inputSeconds + this.state.inputMins * 60;
+    this.setState({
+      initialTime: totalSeconds,
+      seconds: totalSeconds
+    })
+  }
+
+  convertTimeToSeconds = (timeObject) => {
+    return timeObject.minutes * 60 + timeObject.seconds
+  }
+
+  startTimer() {
+    if (this.state.seconds > 0 && !this.state.timerRunning){
+      this.timer = setInterval(this.countDown, 1000);
+      this.setState({
+        timerRunning: true
+      })
+    }
+  }
+
+  renderTimeInput = () => {
+    return (
+      <Form>
+        <Form.Group widths={'equal'}>
+        <Form.Input labelPosition='left' type='number' placeholder='Mins' onChange={(e) => this.handleMins(e)}>
+          <Label basic>Minutes</Label>
+          <input />
+        </Form.Input>
+        <Form.Input labelPosition='left' type='number' placeholder='Seconds' onChange={(e) => this.handleSeconds(e)}>
+          <Label basic>Seconds</Label>
+          <input />
+        </Form.Input>
+        </Form.Group>
+        <Form.Button onClick={this.setTimer} disabled={(this.state.inputSeconds + this.state.inputMins * 60) === 0} >Set Timer</Form.Button>
+      </Form>
+    )
+  }
+
+  renderTimerButtons = () => {
+    if (this.state.timerRunning){
+      return (
+        <Button onClick={this.pauseTimer} color='red'>Pause</Button>
+      )
+    } else {
+      return (
+        <Button onClick={this.startTimer} color='blue'>Start</Button>
+      )
+    }
+  }
+
+  renderTimer = () => {
+      return(
+        <div>
+          <Header as='h4'>Time Remaining: {this.displayMinutes(this.state.seconds)}:{this.displaySeconds(this.state.seconds)}</Header>
+          <Progress percent={this.state.percent} indicating size={'tiny'} style={{width: '50vw'}} />
+          {this.renderTimerButtons()}
+          {this.renderTimeInput()}
+        </div>
+      )
+  }
+
   renderRoom = () => {
       return (
         <div style={{margin: '0 auto', display: 'table'}}>
@@ -242,25 +393,6 @@ export default class RoomPage extends React.Component {
                 <Header as="h2">
                   Meeting Agenda
                 </Header>
-              </Card.Header>
-            </Card.Content>
-            <Card.Content>
-              <Card.Header>
-                <Header as="h3" floated="left">
-                  Current Speaker: Christian Smith
-                </Header>
-                <Feed>
-                  <Feed.Event>
-                    <Feed.Label image='/static/images/moose-avatar.png' />
-                    <Feed.Content>
-                      <Feed.Date content='10 minutes totlal' />
-                      <Feed.Summary>
-                        Christian will be speaking about <a>something really really important</a>
-                      </Feed.Summary>
-                      <Timer/>
-                    </Feed.Content>
-                  </Feed.Event>
-                </Feed>
               </Card.Header>
             </Card.Content>
             <Button onClick={this.handleQueue}>

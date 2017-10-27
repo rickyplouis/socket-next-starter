@@ -1,4 +1,4 @@
-import { Progress, Header, Input, Button, Label } from 'semantic-ui-react'
+import { Progress, Header, Form , Button, Label } from 'semantic-ui-react'
 export default class Timer extends React.Component {
   constructor() {
     super();
@@ -94,21 +94,23 @@ export default class Timer extends React.Component {
 
   renderTimeInput = () => {
     return (
-      <div>
-        <Input labelPosition='left' type='number' placeholder='Mins' onChange={(e) => this.handleMins(e)}>
+      <Form>
+        <Form.Group widths={'equal'}>
+        <Form.Input labelPosition='left' type='number' placeholder='Mins' onChange={(e) => this.handleMins(e)}>
           <Label basic>Minutes</Label>
           <input />
-        </Input>
-        <Input labelPosition='left' type='number' placeholder='Seconds' onChange={(e) => this.handleSeconds(e)}>
+        </Form.Input>
+        <Form.Input labelPosition='left' type='number' placeholder='Seconds' onChange={(e) => this.handleSeconds(e)}>
           <Label basic>Seconds</Label>
           <input />
-        </Input>
-        <Button onClick={this.setTimer}>Set Timer</Button>
-      </div>
+        </Form.Input>
+        </Form.Group>
+        <Form.Button onClick={this.setTimer} disabled={(this.state.inputSeconds + this.state.inputMins * 60) === 0} >Set Timer</Form.Button>
+      </Form>
     )
   }
 
-  renderTimerControls = () => {
+  renderTimerButtons = () => {
     if (this.state.timerRunning){
       return (
         <Button onClick={this.pauseTimer} color='red'>Pause</Button>
@@ -123,10 +125,10 @@ export default class Timer extends React.Component {
   render() {
     return(
       <div>
-        {this.renderTimeInput()}
         <Header as='h4'>Time Remaining: {this.displayMinutes(this.state.seconds)}:{this.displaySeconds(this.state.seconds)}</Header>
         <Progress percent={this.state.percent} indicating size={'tiny'} style={{width: '50vw'}} />
-        {this.renderTimerControls()}
+        {this.renderTimerButtons()}
+        {this.renderTimeInput()}
       </div>
     )
   }
