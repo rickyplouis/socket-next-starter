@@ -385,8 +385,7 @@ export default class RoomPage extends React.Component {
   renderRoom = () => {
       return (
         <div style={{margin: '0 auto', display: 'table'}}>
-          <Header as="h2">On room.js</Header>
-          <Header as="h3"> Room id is {this.state.id}</Header>
+          <Header as="h2">In room {this.state.room.roomName}</Header>
           <Card style={{margin: '0 auto', display: 'table', width: '50vw'}}>
             <Card.Content>
               <Card.Header>

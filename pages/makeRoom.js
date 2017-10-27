@@ -17,14 +17,14 @@ export default class MakeRoom extends Component {
     super(props);
     this.state = {
       rooms: this.props.rooms,
-      admin: '',
+      roomName: '',
       password: '',
       confirmPassword: '',
       passwordProtected: false,
       duration: 0,
       agenda: []
     }
-    this.handleAdmin = this.handleAdmin.bind(this);
+    this.handleRoomName = this.handleRoomName.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handlePassword = this.handlePassword.bind(this);
     this.handleConfirmPassword = this.handleConfirmPassword.bind(this);
@@ -49,8 +49,8 @@ export default class MakeRoom extends Component {
 
   //Form Handlers
 
-  handleAdmin = event => {
-    this.setState({ admin: event.target.value })
+  handleRoomName = event => {
+    this.setState({ roomName: event.target.value })
   }
 
   handlePassword = event => {
@@ -69,18 +69,11 @@ export default class MakeRoom extends Component {
     return {
       id: roomID,
       createdAt: new Date(),
-      admin: this.state.admin,
+      roomName: this.state.roomName,
       password: this.state.password,
       passwordProtected: this.state.passwordProtected,
       duration: this.state.duration,
       agenda: this.state.agenda,
-      users: [
-        {
-          name: this.state.admin,
-          isAdmin: true,
-          isConnected: true
-        }
-      ]
     }
   }
 
@@ -108,7 +101,7 @@ export default class MakeRoom extends Component {
   }
 
   invalidRoomDetails = () => {
-    return this.state.admin.length === 0 || this.state.duration === 0;
+    return this.state.roomName.length === 0 || this.state.duration === 0;
   }
 
   disableSubmit(){
@@ -160,12 +153,12 @@ export default class MakeRoom extends Component {
           <Form onSubmit={this.handleSubmit} style={{marginTop: '10vh', marginLeft: '30vw', marginRight:'30vw'}}>
             <Header as="h2">Make A Room</Header>
             <Form.Field style={{textAlign:'left'}}>
-              <label>Enter Your Name</label>
+              <label>Enter Your Room Name</label>
               <Form.Input
-                onChange={this.handleAdmin}
+                onChange={this.handleRoomName}
                 type='text'
-                placeholder='Robert Ruler'
-                value={this.state.admin}
+                placeholder='The best room'
+                value={this.state.roomName}
                 />
             </Form.Field>
             <Form.Field style={{textAlign: 'left'}}>
