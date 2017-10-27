@@ -408,17 +408,30 @@ export default class RoomPage extends React.Component {
       )
   }
 
-  connectUser = (e) => {
+  passwordMismatch = () => {
+    return this.state.inputPassword !== this.state.room.password;
+  }
+
+  connectUser = () => {
+    this.setState({
+      userConnected: true
+    })
+  }
+
+  submitEntranceForm = (e) => {
     e.preventDefault();
-    if (this.state.inputPassword !== this.state.room.password){
-      this.setState({
-        wrongPassword: true,
-        inputPassword: ''
-      })
-    } else {
-      this.setState({
-        userConnected: true
-      })
+    if (this.state.room.passwordProtected){
+      if (this.passwordMismatch()){
+        this.setState({
+          wrongPassword: true,
+          inputPassword: ''
+        })
+      } else {
+        this.connectUser()
+      }
+    }
+    else {
+      this.connectUser()
     }
   }
 
@@ -436,15 +449,35 @@ export default class RoomPage extends React.Component {
     })
   }
 
-  renderUsernameForm(){
+  disableEntranceButton = () => {
+    if (this.state.room.passwordProtected){
+      return this.state.inputPassword.length === 0 || this.state.username.length === 0;
+    } else {
+      return this.state.username.length === 0;
+    }
+  }
+
+  renderPasswordField = () => {
+    if (this.state.room.passwordProtected){
+      return (
+        <div>
+            <Form.Input placeholder='Enter the room password' type="password" error={this.state.wrongPassword && this.state.inputPassword.length == 0} name='password' value={this.state.inputPassword} onChange={ (e) => this.handlePassword(e)} />
+        </div>
+      )
+    } else {
+      return (<div></div>)
+    }
+  }
+
+  renderEntranceForm(){
     return (
       <div style={{margin: '0 auto', display: 'table'}}>
         <Header as="h2">Enter your name and password to join</Header>
-        <Form size={'tiny'} onSubmit={(e) => this.connectUser(e)} >
+        <Form size={'tiny'} onSubmit={(e) => this.submitEntranceForm(e)} >
           <Form.Group>
             <Form.Input placeholder='Enter your name' name='name' value={this.state.username} onChange={ (e) => this.handleUsername(e)} />
-            <Form.Input placeholder='Enter the room password' type="password" error={this.state.wrongPassword && this.state.inputPassword.length == 0} name='password' value={this.state.inputPassword} onChange={ (e) => this.handlePassword(e)} />
-            <Form.Button content='Submit' disabled={this.state.username.length == 0 || this.state.inputPassword.length == 0} />
+            {this.renderPasswordField()}
+            <Form.Button content='Submit' disabled={this.disableEntranceButton()} />
           </Form.Group>
         </Form>
       </div>
@@ -457,7 +490,7 @@ export default class RoomPage extends React.Component {
       return <div>No room available at this id</div>
     }
     else {
-      return this.state.userConnected ? <div>{this.renderRoom()}</div> : <div>{this.renderUsernameForm()}</div>
+      return this.state.userConnected ? <div>{this.renderRoom()}</div> : <div>{this.renderEntranceForm()}</div>
     }
   }
 
