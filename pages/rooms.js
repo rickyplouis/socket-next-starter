@@ -46,8 +46,10 @@ export default class RoomPage extends React.Component {
 
   componentWillMount(){
     this.setState({
-      initialTime: this.convertTimeToSeconds(this.state.timeObject),
-      seconds: this.convertTimeToSeconds(this.state.timeObject)
+      timerObject: {
+        startingSeconds: this.convertTimeToSeconds(this.state.timerObject)
+      },
+      seconds: this.convertTimeToSeconds(this.state.timerObject)
     })
   }
 
@@ -87,13 +89,13 @@ export default class RoomPage extends React.Component {
         'details': '',
         'duration': 0
       },
-      timeObject: {
+      timerObject: {
+        startingSeconds: 0,
+        percent: 100,
         minutes: 2,
         seconds: 5
       },
-      inputMins: 0,
-      inputSeconds: 0,
-      initialTime: 0,
+      startingSeconds: 0,
       percent: 100,
       timerRunning: false
     }
@@ -295,14 +297,11 @@ export default class RoomPage extends React.Component {
     return Object.keys(room).length === 0 && room.constructor === Object
   }
 
-  /**
-  *
-  * Timer Components
-  */
-
-  convertTimeToSeconds = (timeObject) => {
-    return timeObject.minutes * 60 + timeObject.seconds
-  }
+   /*
+    *
+    * Timer Components
+    *
+    */
 
   startTimer() {
     if (this.state.seconds > 0 && !this.state.timerRunning){
@@ -323,7 +322,7 @@ export default class RoomPage extends React.Component {
     // Remove one second, set state so a re-render happens.
     this.setState({
       seconds: seconds,
-      percent: (seconds / this.state.initialTime) * 100
+      percent: (seconds / this.state.timerObject.startingSeconds) * 100
     });
   }
 
@@ -344,30 +343,8 @@ export default class RoomPage extends React.Component {
     return mins;
   }
 
-  handleMins = (event) => {
-    event.preventDefault();
-    this.setState({
-      inputMins: parseInt(event.target.value)
-    })
-  }
-
-  handleSeconds = (event) => {
-    event.preventDefault();
-    this.setState({
-      inputSeconds: parseInt(event.target.value)
-    })
-  }
-
-  setTimer = () => {
-    let totalSeconds = this.state.inputSeconds + this.state.inputMins * 60;
-    this.setState({
-      initialTime: totalSeconds,
-      seconds: totalSeconds
-    })
-  }
-
-  convertTimeToSeconds = (timeObject) => {
-    return timeObject.minutes * 60 + timeObject.seconds
+  convertTimeToSeconds = (timerObject) => {
+    return timerObject.minutes * 60 + timerObject.seconds
   }
 
   startTimer() {
@@ -379,45 +356,30 @@ export default class RoomPage extends React.Component {
     }
   }
 
-  renderTimeInput = () => {
-    return (
-      <Form>
-        <Form.Group widths={'equal'}>
-        <Form.Input labelPosition='left' type='number' placeholder='Mins' onChange={(e) => this.handleMins(e)}>
-          <Label basic>Minutes</Label>
-          <input />
-        </Form.Input>
-        <Form.Input labelPosition='left' type='number' placeholder='Seconds' onChange={(e) => this.handleSeconds(e)}>
-          <Label basic>Seconds</Label>
-          <input />
-        </Form.Input>
-        </Form.Group>
-        <Form.Button onClick={this.setTimer} disabled={(this.state.inputSeconds + this.state.inputMins * 60) === 0} >Set Timer</Form.Button>
-      </Form>
-    )
-  }
-
   renderTimerButtons = () => {
-    if (this.state.timerRunning){
-      return (
-        <Button onClick={this.pauseTimer} color='red'>Pause</Button>
-      )
-    } else {
-      return (
-        <Button onClick={this.startTimer} color='blue'>Start</Button>
-      )
-    }
+    return this.state.timerRunning ?
+          <Button onClick={this.pauseTimer} color='red'>Pause</Button>
+          :
+          <Button onClick={this.startTimer} color='blue'>Start</Button>
   }
 
   renderTimer = () => {
+    let currentSpeaker = this.state.room.agenda[0].items[0];
       return(
         <div>
+          <Card.Header>
+            Current Speaker is {currentSpeaker.name}
+          </Card.Header>
           <Header as='h4'>Time Remaining: {this.displayMinutes(this.state.seconds)}:{this.displaySeconds(this.state.seconds)}</Header>
           <Progress percent={this.state.percent} indicating size={'tiny'} style={{width: '50vw'}} />
           {this.renderTimerButtons()}
-          {this.renderTimeInput()}
+          <Button onClick={this.handleQueue} color="purple">Skip Speaker</Button>
         </div>
       )
+  }
+
+  timerVisible(){
+    return this.agendaExists(this.state.room.agenda) && this.state.room.agenda[0].items.length > 0 ;
   }
 
   renderRoom = () => {
@@ -433,9 +395,7 @@ export default class RoomPage extends React.Component {
                 </Header>
               </Card.Header>
             </Card.Content>
-            <Button onClick={this.handleQueue}>
-              Pop off Queue
-            </Button>
+            { this.timerVisible() && this.renderTimer()}
           </Card>
           {this.renderTopics()}
           {this.renderAddTopicForm()}
