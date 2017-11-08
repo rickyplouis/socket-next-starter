@@ -109,16 +109,25 @@ export default class RoomPage extends React.Component {
       inputTopic: this.state.inputTopic,
       room: {
         id: this.state.id,
-        admin: this.state.room.admin,
+        roomName: this.state.room.roomName,
         password: this.state.room.password,
+        passwordProtected: this.state.room.passwordProtected,
+        duration: this.state.room.duration,
+
         agenda: newAgenda
       }
     })
     this.socket.emit('updateRoom', this.state.room)
   }
 
+  agendaExists = (agenda) => {
+    return agenda && agenda.length > 0;
+  }
+
   handleQueue = () => {
-    shiftAgenda(this.state.room.agenda).then( (newAgenda) => this.updateAgenda(newAgenda))
+    if (this.agendaExists(this.state.room.agenda)){
+      shiftAgenda(this.state.room.agenda).then( (newAgenda) => this.updateAgenda(newAgenda))
+    }
   }
 
   changeTopicName = (event, topic, agenda) => {
@@ -386,6 +395,7 @@ export default class RoomPage extends React.Component {
       return (
         <div style={{margin: '0 auto', display: 'table'}}>
           <Header as="h2">In room {this.state.room.roomName}</Header>
+          <Header as="h4">Expected Duration: {this.state.room.duration} mins</Header>
           <Card style={{margin: '0 auto', display: 'table', width: '50vw'}}>
             <Card.Content>
               <Card.Header>
@@ -395,7 +405,7 @@ export default class RoomPage extends React.Component {
               </Card.Header>
             </Card.Content>
             <Button onClick={this.handleQueue}>
-              Handle Queue
+              Pop off Queue
             </Button>
             {this.renderTopics()}
             {this.renderAddTopicForm()}

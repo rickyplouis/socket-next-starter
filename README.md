@@ -6,7 +6,7 @@ Install it and run:
 
 ```bash
 npm install
-npm run dev
+[PORT=XXXX] node server
 ```
 
 ## The idea behind the example
