@@ -467,22 +467,27 @@ export default class RoomPage extends React.Component {
     }
   }
 
+  roomHasPassword = () => {
+    return this.state.room.passwordProtected;
+  }
+
   renderPasswordField = () => {
-    if (this.state.room.passwordProtected){
-      return (
-        <div>
-            <Form.Input placeholder='Enter the room password' type="password" error={this.state.wrongPassword && this.state.inputPassword.length == 0} name='password' value={this.state.inputPassword} onChange={ (e) => this.handlePassword(e)} />
-        </div>
-      )
-    } else {
-      return (<div></div>)
-    }
+    return (<div>
+            { this.roomHasPassword()
+              &&
+              <Form.Input placeholder='Enter the room password' type="password" error={this.state.wrongPassword && this.state.inputPassword.length == 0} name='password' value={this.state.inputPassword} onChange={ (e) => this.handlePassword(e)}/>
+            }
+            </div>)
+  }
+
+  renderJoinText = () => {
+    return (<Header as="h2"> Enter your name{this.roomHasPassword() ? " and password ": " "}to join</Header>)
   }
 
   renderEntranceForm(){
     return (
       <div style={{margin: '0 auto', display: 'table'}}>
-        <Header as="h2">Enter your name and password to join</Header>
+        {this.renderJoinText()}
         <Form size={'tiny'} onSubmit={(e) => this.submitEntranceForm(e)} >
           <Form.Group>
             <Form.Input placeholder='Enter your name' name='name' value={this.state.username} onChange={ (e) => this.handleUsername(e)} />
