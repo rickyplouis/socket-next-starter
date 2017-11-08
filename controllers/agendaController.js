@@ -31,6 +31,16 @@ export function changeName(event, topic, agenda){
   });
 }
 
+export function changeEditStatus(event, topic, agenda){
+  return new Promise(function(resolve, reject) {
+    event.preventDefault();
+    let newAgenda = agenda;
+    let index = findTopicIndex(topic, agenda);
+    newAgenda[index].editable = !newAgenda[index].editable
+    resolve(newAgenda)
+  });
+}
+
 export function shiftAgenda(agenda){
   return new Promise(function(resolve, reject) {
     let newAgenda = agenda;
@@ -51,6 +61,7 @@ export function addTopic(event, topicName, agenda){
     let topic = {
       'id': uuidv1(),
       'name': topicName,
+      'editable': false,
       'items': []
     }
     let newAgenda = agenda.concat(topic);

@@ -7,11 +7,11 @@ import PageContainer from '../components/pageContainer'
 import Timer from '../components/timer'
 import CardComponent from '../components/cardComponent'
 
-import { Header, Form, Button, Card, Feed, Icon, Input, Progress, Label } from 'semantic-ui-react'
+import { Header, Form, Button, Card, Feed, Icon, Input, Progress, Label, Radio } from 'semantic-ui-react'
 import SortableList from '../components/SortableList'
 import Head from 'next/head';
 
-import { findTopicIndex, addTopic, deleteTopic, changeName, shiftAgenda } from '../controllers/agendaController'
+import { findTopicIndex, addTopic, deleteTopic, changeName, changeEditStatus, shiftAgenda } from '../controllers/agendaController'
 
 export default class RoomPage extends React.Component {
 
@@ -134,6 +134,10 @@ export default class RoomPage extends React.Component {
     changeName(event, topic, agenda).then( (newAgenda) => this.updateAgenda(newAgenda) );
   }
 
+  editStatus = (event, topic, agenda) => {
+    changeEditStatus(event, topic, agenda).then( (newAgenda) => this.updateAgenda(newAgenda) );
+  }
+
   removeTopic = (e, topic, agenda) => {
     deleteTopic(e, topic, agenda).then( (newAgenda) => this.updateAgenda(newAgenda) )
   }
@@ -214,22 +218,45 @@ export default class RoomPage extends React.Component {
   *
   */
 
+  renderTopicHeader = (topic) => {
+    return (<div>
+              {topic.name+" "} <Button active={topic.editable} onClick={(e) => this.editStatus(e, topic, this.state.room.agenda)}>{topic.editable ? 'Finish': 'Edit'} </Button>
+            </div>)
+  }
+
+  renderEditForm = (topic) => {
+    return (
+      <Form size={'large'} width={16}>
+        <Form.Field inline>
+          <label>Edit Topic:</label>
+          <Input placeholder="Enter Topic Title" value={topic.name} onChange={(e) => this.changeTopicName(e, topic, this.state.room.agenda)} ></Input>
+        </Form.Field>
+        <Form.Field>
+          <Button onClick={(e) => this.removeTopic(e, topic, this.state.room.agenda)}>Delete Topic</Button>
+        </Form.Field>
+      </Form>
+    )
+  }
+
   renderTopics(){
     let index = 0;
     return this.state.room.agenda.map( (topic) =>
-            (
-              <Card.Content key={index++}>
-                <Header as="h2">{topic.name}</Header>
-                  <Form size={'large'} width={16}>
-                    <Form.Field inline>
-                      <label>Edit Topic:</label>
-                      <Input placeholder="Enter Topic Title" value={topic.name} onChange={(e) => this.changeTopicName(e, topic, this.state.room.agenda)} ></Input>
-                      <Button onClick={(e) => this.removeTopic(e, topic, this.state.room.agenda)}>Delete</Button>
-                    </Form.Field>
-                  </Form>
+            (<Card style={{margin: '0 auto', display: 'table', width: '50vw'}} key={index++}>
+              <Card.Content>
+                <Card.Header>
+                  {this.renderTopicHeader(topic)}
+                </Card.Header>
+              </Card.Content>
+              {topic.editable &&
+                <Card.Content extra>
+                  {this.renderEditForm(topic)}
+                </Card.Content>
+              }
+              <Card.Content>
                   <SortableList items={this.state.room.agenda[findTopicIndex(topic, this.state.room.agenda)].items} onSortEnd={this.onSortEnd} />
                   {this.renderItem(topic)}
-                </Card.Content>))
+                </Card.Content>
+              </Card>))
               }
 
   handleTopic = event => {
@@ -252,13 +279,15 @@ export default class RoomPage extends React.Component {
 
   renderAddTopicForm = () => {
     return (
-      <Card.Content>
-        <Form>
-          <label>Add Topic:</label>
-          <Form.Input type="text" value={this.state.inputTopic} onChange={this.handleTopic} />
-          <Button onClick={(e) => this.submitTopic(e, this.state.inputTopic, this.state.room.agenda)}>Send</Button>
-        </Form>
-      </Card.Content>
+      <Card style={{margin: '0 auto', display: 'table', width: '50vw'}}>
+        <Card.Content>
+          <Form>
+            <label>Add Topic:</label>
+            <Form.Input type="text" value={this.state.inputTopic} onChange={this.handleTopic} />
+            <Button onClick={(e) => this.submitTopic(e, this.state.inputTopic, this.state.room.agenda)}>Send</Button>
+          </Form>
+        </Card.Content>
+      </Card>
     )
   }
 
@@ -407,9 +436,9 @@ export default class RoomPage extends React.Component {
             <Button onClick={this.handleQueue}>
               Pop off Queue
             </Button>
-            {this.renderTopics()}
-            {this.renderAddTopicForm()}
           </Card>
+          {this.renderTopics()}
+          {this.renderAddTopicForm()}
           <Form onSubmit={this.handleSubmit}>
             <label>My username:</label>
             <Form.Input type="text" placeholder="Enter your name" value={this.state.username} onChange={ (e) => this.handleUsername(e)} />
@@ -430,17 +459,13 @@ export default class RoomPage extends React.Component {
 
   submitEntranceForm = (e) => {
     e.preventDefault();
-    if (this.state.room.passwordProtected){
-      if (this.passwordMismatch()){
-        this.setState({
-          wrongPassword: true,
-          inputPassword: ''
-        })
-      } else {
-        this.connectUser()
-      }
-    }
-    else {
+
+    if (this.state.room.passwordProtected && this.passwordMismatch()){
+      this.setState({
+        wrongPassword: true,
+        inputPassword: ''
+      })
+    } else {
       this.connectUser()
     }
   }
