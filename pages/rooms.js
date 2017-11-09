@@ -47,9 +47,10 @@ export default class RoomPage extends React.Component {
   componentWillMount(){
     this.setState({
       timerObject: {
-        startingSeconds: this.convertTimeToSeconds(this.state.timerObject)
+        ...this.state.timerObject,
+        startingSeconds: this.convertTimeToSeconds(this.state.timerObject),
+        secondsRemaining: this.convertTimeToSeconds(this.state.timerObject)
       },
-      seconds: this.convertTimeToSeconds(this.state.timerObject)
     })
   }
 
@@ -91,19 +92,17 @@ export default class RoomPage extends React.Component {
       },
       timerObject: {
         startingSeconds: 0,
+        secondsRemaining: 0,
         percent: 100,
         minutes: 2,
-        seconds: 5
-      },
-      startingSeconds: 0,
-      percent: 100,
-      timerRunning: false
+        seconds: 5,
+        timerRunning: false
+      }
     }
       this.timer = 0;
       this.startTimer = this.startTimer.bind(this);
-      this.countDown = this.countDown.bind(this);
       this.pauseTimer = this.pauseTimer.bind(this);
-
+      this.countDown = this.countDown.bind(this);
   }
 
   updateAgenda = (newAgenda) => {
@@ -303,33 +302,41 @@ export default class RoomPage extends React.Component {
     *
     */
 
-  startTimer() {
-    if (this.state.seconds > 0 && !this.state.timerRunning){
-      this.timer = setInterval(this.countDown, 1000);
-      this.setState({
-        timerRunning: true
-      })
-    }
-  }
-
 
   countDown() {
-    let seconds = this.state.seconds - 1;
+    let seconds = this.state.timerObject.secondsRemaining - 1;
     if (seconds <= 0) {
       this.pauseTimer();
     }
 
-    // Remove one second, set state so a re-render happens.
     this.setState({
-      seconds: seconds,
-      percent: (seconds / this.state.timerObject.startingSeconds) * 100
-    });
+      timerObject: {
+        ...this.state.timerObject,
+        secondsRemaining: seconds,
+        percent: (seconds / this.state.timerObject.startingSeconds) * 100
+      }
+    })
+  }
+
+  startTimer() {
+    if (this.state.timerObject.secondsRemaining > 0 && !this.state.timerRunning){
+      this.timer = setInterval(this.countDown, 1000);
+      this.setState({
+        timerObject: {
+          ...this.state.timerObject,
+          timerRunning: true
+        }
+      })
+    }
   }
 
   pauseTimer(){
     clearInterval(this.timer);
     this.setState({
-      timerRunning: false
+      timerObject: {
+        ...this.state.timerObject,
+        timerRunning: false
+      }
     })
   }
 
@@ -347,17 +354,10 @@ export default class RoomPage extends React.Component {
     return timerObject.minutes * 60 + timerObject.seconds
   }
 
-  startTimer() {
-    if (this.state.seconds > 0 && !this.state.timerRunning){
-      this.timer = setInterval(this.countDown, 1000);
-      this.setState({
-        timerRunning: true
-      })
-    }
-  }
+
 
   renderTimerButtons = () => {
-    return this.state.timerRunning ?
+    return this.state.timerObject.timerRunning ?
           <Button onClick={this.pauseTimer} color='red'>Pause</Button>
           :
           <Button onClick={this.startTimer} color='blue'>Start</Button>
@@ -365,13 +365,14 @@ export default class RoomPage extends React.Component {
 
   renderTimer = () => {
     let currentSpeaker = this.state.room.agenda[0].items[0];
+    console.log('state.timerObject', this.state.timerObject);
       return(
         <div>
           <Card.Header>
             Current Speaker is {currentSpeaker.name}
           </Card.Header>
-          <Header as='h4'>Time Remaining: {this.displayMinutes(this.state.seconds)}:{this.displaySeconds(this.state.seconds)}</Header>
-          <Progress percent={this.state.percent} indicating size={'tiny'} style={{width: '50vw'}} />
+          <Header as='h4'>Time Remaining: {this.displayMinutes(this.state.timerObject.secondsRemaining)}:{this.displaySeconds(this.state.timerObject.secondsRemaining)}</Header>
+          <Progress percent={this.state.timerObject.percent} indicating size={'tiny'} style={{width: '50vw'}} />
           {this.renderTimerButtons()}
           <Button onClick={this.handleQueue} color="purple">Skip Speaker</Button>
         </div>
