@@ -9,7 +9,7 @@ const SortableItem = SortableElement(({value}) =>
     <Feed.Content>
       <Feed.Summary>
         <Feed.User>{value.name}</Feed.User> will discuss {value.details}
-        <Feed.Date>{value.duration} mins</Feed.Date>
+        <Feed.Date>{value.minutes > 0 ? value.minutes + ' mins' : ''} {value.seconds > 0 ? value.seconds + ' seconds': ''}</Feed.Date>
       </Feed.Summary>
     </Feed.Content>
   </Feed.Event>

@@ -88,6 +88,8 @@ export default class RoomPage extends React.Component {
       inputTopic: '',
       itemForm: {
         'details': '',
+        'minutes': 0,
+        'seconds': 0,
         'duration': 0
       },
       timerObject: {
@@ -109,12 +111,7 @@ export default class RoomPage extends React.Component {
     this.setState({
       inputTopic: this.state.inputTopic,
       room: {
-        id: this.state.id,
-        roomName: this.state.room.roomName,
-        password: this.state.room.password,
-        passwordProtected: this.state.room.passwordProtected,
-        duration: this.state.room.duration,
-
+        ...this.state.room,
         agenda: newAgenda
       }
     })
@@ -152,10 +149,19 @@ export default class RoomPage extends React.Component {
     })
   }
 
-  handleItemDuration = (event) => {
+  handleItemMinutes = (event) => {
     event.preventDefault();
     let newItem = this.state.itemForm;
-    newItem.duration = event.target.value
+    newItem.minutes = event.target.value
+    this.setState({
+      itemForm: newItem
+    })
+  }
+
+  handleItemSeconds = (event) => {
+    event.preventDefault();
+    let newItem = this.state.itemForm;
+    newItem.seconds = event.target.value
     this.setState({
       itemForm: newItem
     })
@@ -166,23 +172,20 @@ export default class RoomPage extends React.Component {
     let topicIndex = findTopicIndex(topic, this.state.room.agenda);
     var newAgenda = this.state.room.agenda;
     let item = {
+      ...this.state.itemForm,
       'name': this.state.username,
-      'details': this.state.itemForm.details,
-      'duration': this.state.itemForm.duration
     }
 
     newAgenda[topicIndex].items.push(item);
     this.setState({
       room: {
-        id: this.state.id,
-        admin: this.state.room.admin,
-        password: this.state.room.password,
-        duration: this.state.room.duration,
+        ...this.state.room,
         agenda: newAgenda,
       },
       itemForm: {
         details: "",
-        duration: 0
+        seconds: 0,
+        minutes: 0
       }
     })
   }
@@ -195,18 +198,16 @@ export default class RoomPage extends React.Component {
   }
 
   itemFormInvalid = () => {
-    return this.state.itemForm.details.length === 0 || this.state.itemForm.duration === 0;
+    return this.state.itemForm.details.length === 0 || (this.state.itemForm.seconds === 0 && this.state.itemForm.minutes === 0);
   }
 
   renderItem = (topic) => {
     return (
         <Form size={'tiny'} onSubmit={(e) => this.submitItem(e, topic)}>
           <Form.Group>
-            <Form.Input label="I will talk about..." placeholder='How we will create a product roadmap' width={'eight'} name='details' value={this.state.itemForm.details} onChange={this.handleItemDetails} />
-            <Form.Input label="For..." labelPosition='right' width={'three'} type='number' placeholder='Amount' name='duration' value={this.state.itemForm.duration}  onChange={this.handleItemDuration}>
-              <input />
-              <Label>Mins</Label>
-            </Form.Input>
+            <Form.Input label="I will talk about..." placeholder='How we will create a product roadmap' width={'six'} name='details' value={this.state.itemForm.details} onChange={this.handleItemDetails} />
+            <Form.Input label="Minutes" width={'three'} type='number' placeholder='Amount' name='minutes' value={this.state.itemForm.minutes}  onChange={this.handleItemMinutes}/>
+            <Form.Input label="Seconds" width={'three'} type='number' placeholder='Amount' name='seconds' value={this.state.itemForm.seconds}  onChange={this.handleItemSeconds}/>
             <Form.Button label="Submit" content='Submit' disabled={this.itemFormInvalid()} />
           </Form.Group>
         </Form>
