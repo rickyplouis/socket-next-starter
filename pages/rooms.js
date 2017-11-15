@@ -67,20 +67,34 @@ export default class RoomPage extends React.Component {
     }
   }
 
-  updateAgenda = (newAgenda) => {
-    this.setState({
-      inputTopic: this.state.inputTopic,
-      room: {
-        ...this.state.room,
-        agenda: newAgenda
-      }
-    })
+  updateRoom = (e) => {
+    e.preventDefault;
     this.socket.emit('updateRoom', this.state.room)
   }
 
-  handleSubmit = event => {
-    event.preventDefault()
-    this.socket.emit('updateRoom', this.state.room)
+  handleRoomName = (event) => {
+    event.preventDefault();
+    this.setState({
+      ...this.state,
+      room: {
+        ...this.state.room,
+        roomName: event.target.value
+      }
+    })
+  }
+
+  handleUsername = (event) => {
+    event.preventDefault();
+    this.setState({
+      username: event.target.value
+    })
+  }
+
+  handlePassword = (event) => {
+    event.preventDefault();
+    this.setState({
+      inputPassword: event.target.value
+    })
   }
 
   roomIsEmpty = (room) => {
@@ -90,11 +104,16 @@ export default class RoomPage extends React.Component {
   renderRoom = () => {
       return (
         <div style={{margin: '0 auto', display: 'table'}}>
+          <Form>
+            <Form.Input type="text" placeholder="Room Name" value={this.state.room.roomName} onChange={ (e) => this.handleRoomName(e)} />
+            <Form.Button content='Submit' onClick={(e) => this.updateRoom(e)} />
+          </Form>
           <Header as="h2">In room {this.state.room.roomName}</Header>
           <Header as="h4">Expected Duration: {this.state.room.duration} mins</Header>
-          <Form onSubmit={this.handleSubmit}>
+          <Form>
             <label>My username:</label>
             <Form.Input type="text" placeholder="Enter your name" value={this.state.username} onChange={ (e) => this.handleUsername(e)} />
+            <Form.Button content='Submit' />
           </Form>
         </div>
       )
@@ -121,20 +140,6 @@ export default class RoomPage extends React.Component {
     } else {
       this.connectUser()
     }
-  }
-
-  handleUsername = (event) => {
-    event.preventDefault();
-    this.setState({
-      username: event.target.value
-    })
-  }
-
-  handlePassword = (event) => {
-    event.preventDefault();
-    this.setState({
-      inputPassword: event.target.value
-    })
   }
 
   disableEntranceButton = () => {
