@@ -4,14 +4,9 @@ import fetch from 'isomorphic-fetch'
 import io from 'socket.io-client'
 
 import PageContainer from '../components/pageContainer'
-import Timer from '../components/timer'
-import CardComponent from '../components/cardComponent'
 
-import { Header, Form, Button, Card, Feed, Icon, Input, Progress, Label, Radio } from 'semantic-ui-react'
-import SortableList from '../components/SortableList'
+import { Header, Form, Button, Input, Label } from 'semantic-ui-react'
 import Head from 'next/head';
-
-import { findTopicIndex, addTopic, deleteTopic, changeName, changeEditStatus, shiftAgenda } from '../controllers/agendaController'
 
 export default class RoomPage extends React.Component {
 
@@ -32,27 +27,12 @@ export default class RoomPage extends React.Component {
     rooms: []
   }
 
-  onSortEnd = ({oldIndex, newIndex}) => {
-    this.setState({
-      items: arrayMove(this.state.items, oldIndex, newIndex),
-    });
-  };
-
   // connect to WS server and listen event
   componentDidMount () {
     this.socket = io()
     this.socket.on('updateRoom', this.loadRooms)
   }
 
-  componentWillMount(){
-    this.setState({
-      timerObject: {
-        ...this.state.timerObject,
-        startingSeconds: this.convertTimeToSeconds(this.state.timerObject),
-        secondsRemaining: this.convertTimeToSeconds(this.state.timerObject)
-      }
-    })
-  }
 
   // close socket connection
   componentWillUnmount () {
@@ -84,27 +64,7 @@ export default class RoomPage extends React.Component {
       userConnected: false,
       inputPassword: '',
       wrongPassword: false,
-      text: 'Hello world',
-      inputTopic: '',
-      itemForm: {
-        'details': '',
-        'minutes': 0,
-        'seconds': 0,
-        'duration': 0
-      },
-      timerObject: {
-        startingSeconds: 0,
-        secondsRemaining: 0,
-        percent: 100,
-        minutes: 2,
-        seconds: 5,
-        timerRunning: false
-      }
     }
-      this.timer = 0;
-      this.startTimer = this.startTimer.bind(this);
-      this.pauseTimer = this.pauseTimer.bind(this);
-      this.countDown = this.countDown.bind(this);
   }
 
   updateAgenda = (newAgenda) => {
@@ -118,282 +78,13 @@ export default class RoomPage extends React.Component {
     this.socket.emit('updateRoom', this.state.room)
   }
 
-  agendaExists = (agenda) => {
-    return agenda && agenda.length > 0;
-  }
-
-  handleQueue = () => {
-    if (this.agendaExists(this.state.room.agenda)){
-      shiftAgenda(this.state.room.agenda).then( (newAgenda) => this.updateAgenda(newAgenda))
-    }
-  }
-
-  changeTopicName = (event, topic, agenda) => {
-    changeName(event, topic, agenda).then( (newAgenda) => this.updateAgenda(newAgenda) );
-  }
-
-  editStatus = (event, topic, agenda) => {
-    changeEditStatus(event, topic, agenda).then( (newAgenda) => this.updateAgenda(newAgenda) );
-  }
-
-  removeTopic = (e, topic, agenda) => {
-    deleteTopic(e, topic, agenda).then( (newAgenda) => this.updateAgenda(newAgenda) )
-  }
-
-  handleItemDetails = (event) => {
-    event.preventDefault();
-    let newItem = this.state.itemForm;
-    newItem.details = event.target.value
-    this.setState({
-      itemForm: newItem
-    })
-  }
-
-  handleItemMinutes = (event) => {
-    event.preventDefault();
-    let newItem = this.state.itemForm;
-    newItem.minutes = event.target.value
-    this.setState({
-      itemForm: newItem
-    })
-  }
-
-  handleItemSeconds = (event) => {
-    event.preventDefault();
-    let newItem = this.state.itemForm;
-    newItem.seconds = event.target.value
-    this.setState({
-      itemForm: newItem
-    })
-  }
-
-  addItem = (event, topic) => {
-    event.preventDefault();
-    let topicIndex = findTopicIndex(topic, this.state.room.agenda);
-    var newAgenda = this.state.room.agenda;
-    let item = {
-      ...this.state.itemForm,
-      'name': this.state.username,
-    }
-
-    newAgenda[topicIndex].items.push(item);
-    this.setState({
-      room: {
-        ...this.state.room,
-        agenda: newAgenda,
-      },
-      itemForm: {
-        details: "",
-        seconds: 0,
-        minutes: 0
-      }
-    })
-  }
-
-  submitItem = (event, topic) => {
-    event.preventDefault();
-    Promise.all([this.addItem(event, topic)]).then( () => {
-      this.socket.emit('updateRoom', this.state.room)
-    })
-  }
-
-  itemFormInvalid = () => {
-    return this.state.itemForm.details.length === 0 || (this.state.itemForm.seconds === 0 && this.state.itemForm.minutes === 0);
-  }
-
-  renderItem = (topic) => {
-    return (
-        <Form size={'tiny'} onSubmit={(e) => this.submitItem(e, topic)}>
-          <Form.Group>
-            <Form.Input label="I will talk about..." placeholder='How we will create a product roadmap' width={'six'} name='details' value={this.state.itemForm.details} onChange={this.handleItemDetails} />
-            <Form.Input label="Minutes" width={'three'} type='number' placeholder='Amount' name='minutes' value={this.state.itemForm.minutes}  onChange={this.handleItemMinutes}/>
-            <Form.Input label="Seconds" width={'three'} type='number' placeholder='Amount' name='seconds' value={this.state.itemForm.seconds}  onChange={this.handleItemSeconds}/>
-            <Form.Button label="Submit" content='Submit' disabled={this.itemFormInvalid()} />
-          </Form.Group>
-        </Form>
-    )
-  }
-
-  /**
-  *
-  * Topic Components
-  *
-  */
-
-  renderTopicHeader = (topic) => {
-    return (<div>
-              {topic.name+" "} <Button active={topic.editable} onClick={(e) => this.editStatus(e, topic, this.state.room.agenda)}>{topic.editable ? 'Finish': 'Edit'} </Button>
-            </div>)
-  }
-
-  renderEditForm = (topic) => {
-    return (
-      <Form size={'large'} width={16}>
-        <Form.Field inline>
-          <label>Edit Topic:</label>
-          <Input placeholder="Enter Topic Title" value={topic.name} onChange={(e) => this.changeTopicName(e, topic, this.state.room.agenda)} ></Input>
-        </Form.Field>
-        <Form.Field>
-          <Button onClick={(e) => this.removeTopic(e, topic, this.state.room.agenda)}>Delete Topic</Button>
-        </Form.Field>
-      </Form>
-    )
-  }
-
-  renderTopics(){
-    let index = 0;
-    return this.state.room.agenda.map( (topic) =>
-            (<Card style={{margin: '0 auto', display: 'table', width: '50vw'}} key={index++}>
-              <Card.Content>
-                <Card.Header>
-                  {this.renderTopicHeader(topic)}
-                </Card.Header>
-              </Card.Content>
-              {topic.editable &&
-                <Card.Content extra>
-                  {this.renderEditForm(topic)}
-                </Card.Content>
-              }
-              <Card.Content>
-                  <SortableList items={this.state.room.agenda[findTopicIndex(topic, this.state.room.agenda)].items} onSortEnd={this.onSortEnd} />
-                  {this.renderItem(topic)}
-                </Card.Content>
-              </Card>))
-              }
-
-  handleTopic = event => {
-    return this.setState({
-      inputTopic: event.target.value,
-      room: this.state.room
-    })
-  }
-
-  submitTopic = (event, topicName, agenda) => {
-    event.preventDefault();
-    addTopic(event, topicName, agenda).then( (newAgenda) => {
-      this.updateAgenda(newAgenda)})
-  }
-
   handleSubmit = event => {
     event.preventDefault()
     this.socket.emit('updateRoom', this.state.room)
   }
 
-  renderAddTopicForm = () => {
-    return (
-      <Card style={{margin: '0 auto', display: 'table', width: '50vw'}}>
-        <Card.Content>
-          <Form>
-            <label>Add Topic:</label>
-            <Form.Input type="text" value={this.state.inputTopic} onChange={this.handleTopic} />
-            <Button onClick={(e) => this.submitTopic(e, this.state.inputTopic, this.state.room.agenda)}>Send</Button>
-          </Form>
-        </Card.Content>
-      </Card>
-    )
-  }
-
   roomIsEmpty = (room) => {
     return Object.keys(room).length === 0 && room.constructor === Object
-  }
-
-   /*
-    *
-    * Timer Components
-    *
-    */
-
-
-  countDown() {
-    let seconds = this.state.timerObject.secondsRemaining - 1;
-    if (seconds <= 0) {
-      this.pauseTimer();
-    }
-
-    this.setState({
-      timerObject: {
-        ...this.state.timerObject,
-        secondsRemaining: seconds,
-        percent: (seconds / this.state.timerObject.startingSeconds) * 100
-      }
-    })
-  }
-
-  startTimer() {
-    if (this.state.timerObject.secondsRemaining > 0 && !this.state.timerRunning){
-      this.timer = setInterval(this.countDown, 1000);
-      this.setState({
-        timerObject: {
-          ...this.state.timerObject,
-          timerRunning: true
-        }
-      })
-    }
-  }
-
-  pauseTimer(){
-    clearInterval(this.timer);
-    this.setState({
-      timerObject: {
-        ...this.state.timerObject,
-        timerRunning: false
-      }
-    })
-  }
-
-  displaySeconds(totalSeconds){
-    let seconds = totalSeconds % 60;
-    return seconds < 10 ? '0' + seconds : seconds;
-  }
-
-  displayMinutes(seconds){
-    let mins = Math.floor(seconds / 60);
-    return mins;
-  }
-
-  convertTimeToSeconds = (timerObject) => {
-    return timerObject.minutes * 60 + timerObject.seconds
-  }
-
-
-
-  renderTimerButtons = () => {
-    return this.state.timerObject.timerRunning ?
-          <Button onClick={this.pauseTimer} color='red'>Pause</Button>
-          :
-          <Button onClick={this.startTimer} color='blue'>Start</Button>
-  }
-
-  setTimer = (timeObject) => {
-      this.setState({
-        timerObject: {
-          startingSeconds: this.convertTimeToSeconds(timeObject),
-          secondsRemaining: this.convertTimeToSeconds(timeObject),
-          percent: 100,
-          minutes: timeObject.minutes,
-          seconds: timeObject.seconds,
-          timerRunning: true
-        }
-      })
-  }
-
-  renderTimer = () => {
-      let currentItem = this.state.room.agenda[0].items[0];
-      return (
-        <div>
-            <Card.Header>
-              Current Speaker is {currentItem.name}
-            </Card.Header>
-            <Header as='h4'>Time Remaining: {this.displayMinutes(this.state.timerObject.secondsRemaining)}:{this.displaySeconds(this.state.timerObject.secondsRemaining)}</Header>
-            <Progress percent={this.state.timerObject.percent} indicating size={'tiny'} style={{width: '50vw'}} />
-            {this.renderTimerButtons()}
-            <Button onClick={this.handleQueue} color="purple">Skip Speaker</Button>
-          </div>
-        )
-  }
-
-  timerVisible(){
-    return this.agendaExists(this.state.room.agenda) && this.state.room.agenda[0].items.length > 0 ;
   }
 
   renderRoom = () => {
@@ -401,18 +92,6 @@ export default class RoomPage extends React.Component {
         <div style={{margin: '0 auto', display: 'table'}}>
           <Header as="h2">In room {this.state.room.roomName}</Header>
           <Header as="h4">Expected Duration: {this.state.room.duration} mins</Header>
-          <Card style={{margin: '0 auto', display: 'table', width: '50vw'}}>
-            <Card.Content>
-              <Card.Header>
-                <Header as="h2">
-                  Meeting Agenda
-                </Header>
-              </Card.Header>
-            </Card.Content>
-            {this.timerVisible() && this.renderTimer()}
-          </Card>
-          {this.renderTopics()}
-          {this.renderAddTopicForm()}
           <Form onSubmit={this.handleSubmit}>
             <label>My username:</label>
             <Form.Input type="text" placeholder="Enter your name" value={this.state.username} onChange={ (e) => this.handleUsername(e)} />
