@@ -1,5 +1,5 @@
 {
-  "name": "with-socket.io",
+  "name": "socket-next-starter",
   "version": "1.0.0",
   "dependencies": {
     "express": "^4.15.2",

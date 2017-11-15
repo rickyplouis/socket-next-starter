@@ -28,7 +28,6 @@ export default class HomePage extends React.Component {
           <br/>
           <Button onClick={() => handler('/makeRoom')}>Make A Room</Button>
           <Button onClick={() => handler('/joinRoom')}>Join A Room</Button>
-          <Button onClick={() => handler('/test')}>Test Page</Button>
         </div>
       </PageContainer>
     )
