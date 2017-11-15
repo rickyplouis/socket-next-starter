@@ -1,14 +1,16 @@
 # Socket.io + Next.js example
 
+## The idea
+
+Based off of [nextjs/examples/with-socket.io](https://github.com/zeit/next.js/tree/canary/examples/with-socket.io)
+
+This example show how to use [socket.io](https://socket.io/) inside a Next.js application. This example focuses on creating different rooms and sharing those rooms via url.
+
 ## How to use
 
 Install it and run:
 
-```bash
+```
 npm install
 [PORT=XXXX] node server
 ```
-
-## The idea behind the example
-
-This example show how to use [socket.io](https://socket.io/) inside a Next.js application. It uses `getInitialProps` to fetch the old messages from a HTTP endpoint as if it was a Rest API. The example combine the WebSocket server with the Next server, in a production application you should split them as different services.
