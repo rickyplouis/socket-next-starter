@@ -50,7 +50,7 @@ export default class RoomPage extends React.Component {
         ...this.state.timerObject,
         startingSeconds: this.convertTimeToSeconds(this.state.timerObject),
         secondsRemaining: this.convertTimeToSeconds(this.state.timerObject)
-      },
+      }
     })
   }
 
@@ -364,20 +364,32 @@ export default class RoomPage extends React.Component {
           <Button onClick={this.startTimer} color='blue'>Start</Button>
   }
 
+  setTimer = (timeObject) => {
+      this.setState({
+        timerObject: {
+          startingSeconds: this.convertTimeToSeconds(timeObject),
+          secondsRemaining: this.convertTimeToSeconds(timeObject),
+          percent: 100,
+          minutes: timeObject.minutes,
+          seconds: timeObject.seconds,
+          timerRunning: true
+        }
+      })
+  }
+
   renderTimer = () => {
-    let currentSpeaker = this.state.room.agenda[0].items[0];
-    console.log('state.timerObject', this.state.timerObject);
-      return(
+      let currentItem = this.state.room.agenda[0].items[0];
+      return (
         <div>
-          <Card.Header>
-            Current Speaker is {currentSpeaker.name}
-          </Card.Header>
-          <Header as='h4'>Time Remaining: {this.displayMinutes(this.state.timerObject.secondsRemaining)}:{this.displaySeconds(this.state.timerObject.secondsRemaining)}</Header>
-          <Progress percent={this.state.timerObject.percent} indicating size={'tiny'} style={{width: '50vw'}} />
-          {this.renderTimerButtons()}
-          <Button onClick={this.handleQueue} color="purple">Skip Speaker</Button>
-        </div>
-      )
+            <Card.Header>
+              Current Speaker is {currentItem.name}
+            </Card.Header>
+            <Header as='h4'>Time Remaining: {this.displayMinutes(this.state.timerObject.secondsRemaining)}:{this.displaySeconds(this.state.timerObject.secondsRemaining)}</Header>
+            <Progress percent={this.state.timerObject.percent} indicating size={'tiny'} style={{width: '50vw'}} />
+            {this.renderTimerButtons()}
+            <Button onClick={this.handleQueue} color="purple">Skip Speaker</Button>
+          </div>
+        )
   }
 
   timerVisible(){
@@ -397,7 +409,7 @@ export default class RoomPage extends React.Component {
                 </Header>
               </Card.Header>
             </Card.Content>
-            { this.timerVisible() && this.renderTimer()}
+            {this.timerVisible() && this.renderTimer()}
           </Card>
           {this.renderTopics()}
           {this.renderAddTopicForm()}
